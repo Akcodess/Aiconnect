@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
+import { SessionService } from './session.service';
 import { ConfigService } from '@nestjs/config';
 import { TokenUtilityService } from '../common/utils/token.util';
 import { LoggingService } from '../common/utils/logging.util';
@@ -9,15 +8,14 @@ import * as fs from 'fs';
 
 jest.mock('fs');
 
-describe('AuthController', () => {
-  let controller: AuthController;
+describe('SessionService', () => {
+  let service: SessionService;
 
   beforeEach(async () => {
     (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify([{ XPUAKey: 'test-key', AIPlatform: 'google', XPUAProps: { version: '1.0', name: 'test-app' } }]));
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [AuthController],
       providers: [
-        AuthService,
+        SessionService,
         {
           provide: ConfigService,
           useValue: {
@@ -38,10 +36,10 @@ describe('AuthController', () => {
       ],
     }).compile();
 
-    controller = module.get<AuthController>(AuthController);
+    service = module.get<SessionService>(SessionService);
   });
 
   it('should be defined', () => {
-    expect(controller).toBeDefined();
+    expect(service).toBeDefined();
   });
 });

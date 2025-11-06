@@ -2,7 +2,7 @@ import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 import { Transform, Expose } from 'class-transformer';
 import moment from 'moment';
 
-import { ResponseCodes, ResponseMessages } from '../enums/auth-response.enums';
+import { ResponseCodes, ResponseMessages } from '../enums/session-response.enums';
 import { EvType } from '../../common/enums/evtype.enums';
 
 export class SessionInitDto {

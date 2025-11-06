@@ -2,15 +2,15 @@ import { Injectable, BadRequestException, InternalServerErrorException, Unauthor
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { SessionInitDto, SessionInitResponseDto, SessionEndResponseDto } from './dto/auth.dto';
+import { SessionInitDto, SessionInitResponseDto, SessionEndResponseDto } from './dto/session.dto';
 import { plainToInstance } from 'class-transformer';
 import { TokenUtilityService } from '../common/utils/token.util';
 import { LoggingService } from '../common/utils/logging.util';
-import { ResponseCodes, ResponseMessages } from './enums/auth-response.enums';
+import { ResponseCodes, ResponseMessages } from './enums/session-response.enums';
 import { ResponseHelperService } from '../common/helpers/response.helper';
 
 @Injectable()
-export class AuthService {
+export class SessionService {
   private readonly tenantList: any[];
 
   constructor(private readonly tokenUtil: TokenUtilityService, private readonly logger: LoggingService, private readonly responseHelper: ResponseHelperService) {
@@ -107,46 +107,12 @@ export class AuthService {
 
   // Fetches application version info from environment variables and returns
   // standardized success response following existing auth flow
-  async getVersion(reqId?: string, reqCode?: string): Promise<any> {
-    const versionInfo = {
-      Version: {
-        ReleaseVersion: process.env.BUILD_NUMBER ?? '',
-        ReleaseDate: process.env.RELEASE_DATE ?? '',
-        Name: process.env.AICONNECT_V ?? '',
-      },
-    };
-
-    this.logger.info(ResponseMessages.VersionFetched);
-    return this.responseHelper.successNest(
-      ResponseMessages.VersionFetched,
-      ResponseCodes.VersionInfoFetch,
-      versionInfo,
-      reqId,
-      reqCode,
-    );
-  }
+  // Moved to CommonService
 
   // Health check endpoint: returns standardized success with Data payload
-  async health(reqId?: string, reqCode?: string): Promise<any> {
-    const healthData = { Text: 'OK', Status: 200 };
-    this.logger.info(ResponseMessages.HealthOk);
-    // Return plain health response without using ResponseHelper, per requirement
-    return healthData;
-  }
+  // Moved to CommonService
 
   // Encrypt endpoint: encrypts provided Data using TokenUtilityService and returns
   // standardized success response with EncryptData payload
-  async encrypt(data: any, reqId?: string, reqCode?: string): Promise<any> {
-    if (!data) {
-      return this.responseHelper.failNest(BadRequestException, ResponseMessages.EncryptFailed, ResponseCodes.EncryptFailed, reqId, reqCode);
-    }
-    try {
-      const ciphertext = this.tokenUtil.EncryptData(JSON.stringify(data));
-      this.logger.info(ResponseMessages.EncryptSuccess);
-      return this.responseHelper.successNest(ResponseMessages.EncryptSuccess, ResponseCodes.EncryptSuccess, { EncryptData: ciphertext }, reqId, reqCode);
-    } catch (error: any) {
-      this.logger.error(ResponseMessages.EncryptFailed, error?.message || error);
-      return this.responseHelper.failNest(InternalServerErrorException, ResponseMessages.EncryptFailed, ResponseCodes.EncryptFailed, reqId, reqCode);
-    }
-  }
+  // Moved to CommonService
 }

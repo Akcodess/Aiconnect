@@ -2,7 +2,8 @@ import { Injectable, NestMiddleware, UnauthorizedException, ForbiddenException, 
 import { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
-import { ResponseCodes, ResponseMessages } from '../../auth/enums/auth-response.enums';
+
+import { ResponseCodes, ResponseMessages } from '../../session/enums/session-response.enums';
 
 interface CustomJwtPayload {
   platform?: string;

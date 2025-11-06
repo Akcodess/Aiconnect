@@ -1,19 +1,20 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
+import { SessionService } from './session.service';
 import { ConfigModule } from '@nestjs/config';
+
+import { SessionController } from './session.controller';
 import { TokenUtilityService } from '../common/utils/token.util';
 import { LoggingService } from '../common/utils/logging.util';
 import { ResponseHelperService } from '../common/helpers/response.helper';
 
 @Module({
   imports: [ConfigModule],
-  controllers: [AuthController],
+  controllers: [SessionController],
   providers: [
-    AuthService,
+    SessionService,
     TokenUtilityService,
     LoggingService,
     ResponseHelperService,
   ],
 })
-export class AuthModule {}
+export class SessionModule {}

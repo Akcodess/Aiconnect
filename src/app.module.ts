@@ -2,8 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 // import { SentimentModule } from './sentiment/sentiment.module';
 
-import { AuthModule } from './auth/auth.module';
+import { SessionModule } from './session/session.module';
 import { ValkeyModule } from './valkey/valkey.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -14,8 +15,9 @@ import { ValkeyModule } from './valkey/valkey.module';
       }
     ),
     // SentimentModule,
-    AuthModule,
-    ValkeyModule
+    SessionModule,
+    ValkeyModule,
+    CommonModule
   ]
 })
 export class AppModule { }

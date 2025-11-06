@@ -2,7 +2,7 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Unauthor
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { ResponseCodes, ResponseMessages } from '../../auth/enums/auth-response.enums';
+import { ResponseCodes, ResponseMessages } from '../../session/enums/session-response.enums';
 
 interface CustomJwtPayload {
   platform?: string;

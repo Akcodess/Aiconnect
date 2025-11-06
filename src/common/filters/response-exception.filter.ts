@@ -2,7 +2,7 @@ import { Catch, ExceptionFilter, ArgumentsHost, HttpException } from '@nestjs/co
 import moment from 'moment';
 import { Response } from 'express';
 
-import { ResponseCodes } from '../../auth/enums/auth-response.enums';
+import { ResponseCodes } from '../../session/enums/session-response.enums';
 import { EvType } from '../enums/evtype.enums';
 
 @Catch(HttpException)
