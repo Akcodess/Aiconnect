@@ -1,0 +1,10 @@
+[
+  {
+    "XPUAKey": "some-random-ua-key",
+    "AIPlatform": "google",
+    "XPUAProps": {
+      "version": "1.0.0",
+      "name": "some-app"
+    }
+  }
+]
