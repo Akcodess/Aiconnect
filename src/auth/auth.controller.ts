@@ -3,7 +3,7 @@ import { Controller, Post, Get, Body, ValidationPipe, Headers, Query } from '@ne
 import { AuthService } from './auth.service';
 import { SessionInitDto, EncryptRequestDto } from './dto/auth.dto';
 
-@Controller('aiconnect/v1')
+@Controller(process.env.AICONNECT_V!)
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
