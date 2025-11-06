@@ -94,3 +94,22 @@ export class SessionEndResponseDto {
   @Transform(({ value }) => value ?? EvType.Success)
   EvType!: EvType;
 }
+
+// DTO for encrypt request
+export class EncryptRequestDto {
+  @Expose()
+  @IsNotEmpty()
+  Data: any;
+
+  @Expose()
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  ReqId?: string;
+
+  @Expose()
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  ReqCode?: string;
+}

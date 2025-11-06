@@ -12,6 +12,10 @@ export enum ResponseCodes {
   InvalidTenant = 'invalidUAKey',
   InvalidUser = 'invalidUser',
   SessionEndSuccess = 'SessionEndSuccess',
+  VersionInfoFetch = 'VersionInfoFetch',
+  HealthCheck = 'HealthCheck',
+  EncryptSuccess = 'EncryptSuccess',
+  EncryptFailed = 'EncryptFailed',
 }
 
 export enum ResponseMessages {
@@ -28,9 +32,8 @@ export enum ResponseMessages {
   InvalidTenant = 'Invalid Tenant',
   InvalidUser = 'Invalid User',
   SessionEndSuccess = 'Session ended and token expired successfully',
-}
-
-export enum RequestCodes {
-  SessionInit = 'SessionInit',
-  SessionEnd = 'SessionEnd',
+  VersionFetched = 'Version fetched successfully',
+  HealthOk = 'Health check OK',
+  EncryptSuccess = 'Data encrypted successfully',
+  EncryptFailed = 'Data encryption failed',
 }

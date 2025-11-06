@@ -104,4 +104,49 @@ export class AuthService {
       return this.responseHelper.failNest(UnauthorizedException, ResponseMessages.TokenInvalid, ResponseCodes.TokenInvalid, reqId, reqCode);
     }
   }
+
+  // Fetches application version info from environment variables and returns
+  // standardized success response following existing auth flow
+  async getVersion(reqId?: string, reqCode?: string): Promise<any> {
+    const versionInfo = {
+      Version: {
+        ReleaseVersion: process.env.BUILD_NUMBER ?? '',
+        ReleaseDate: process.env.RELEASE_DATE ?? '',
+        Name: process.env.AICONNECT_V ?? '',
+      },
+    };
+
+    this.logger.info(ResponseMessages.VersionFetched);
+    return this.responseHelper.successNest(
+      ResponseMessages.VersionFetched,
+      ResponseCodes.VersionInfoFetch,
+      versionInfo,
+      reqId,
+      reqCode,
+    );
+  }
+
+  // Health check endpoint: returns standardized success with Data payload
+  async health(reqId?: string, reqCode?: string): Promise<any> {
+    const healthData = { Text: 'OK', Status: 200 };
+    this.logger.info(ResponseMessages.HealthOk);
+    // Return plain health response without using ResponseHelper, per requirement
+    return healthData;
+  }
+
+  // Encrypt endpoint: encrypts provided Data using TokenUtilityService and returns
+  // standardized success response with EncryptData payload
+  async encrypt(data: any, reqId?: string, reqCode?: string): Promise<any> {
+    if (!data) {
+      return this.responseHelper.failNest(BadRequestException, ResponseMessages.EncryptFailed, ResponseCodes.EncryptFailed, reqId, reqCode);
+    }
+    try {
+      const ciphertext = this.tokenUtil.EncryptData(JSON.stringify(data));
+      this.logger.info(ResponseMessages.EncryptSuccess);
+      return this.responseHelper.successNest(ResponseMessages.EncryptSuccess, ResponseCodes.EncryptSuccess, { EncryptData: ciphertext }, reqId, reqCode);
+    } catch (error: any) {
+      this.logger.error(ResponseMessages.EncryptFailed, error?.message || error);
+      return this.responseHelper.failNest(InternalServerErrorException, ResponseMessages.EncryptFailed, ResponseCodes.EncryptFailed, reqId, reqCode);
+    }
+  }
 }

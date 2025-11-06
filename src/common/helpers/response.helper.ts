@@ -20,6 +20,7 @@ export class ResponseHelperService {
       ReqCode: reqCode ?? '',
       ...(expiresIn !== '' && { ExpiresIn: expiresIn }),
       ...(token !== '' && { SessionId: token }),
+      ...(data && Object.keys(data).length > 0 && { Data: data }),
     };
     return response;
   }

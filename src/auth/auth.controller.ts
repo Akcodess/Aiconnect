@@ -1,7 +1,7 @@
-import { Controller, Post, Body, ValidationPipe, Headers } from '@nestjs/common';
+import { Controller, Post, Get, Body, ValidationPipe, Headers, Query } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
-import { SessionInitDto } from './dto/auth.dto';
+import { SessionInitDto, EncryptRequestDto } from './dto/auth.dto';
 
 @Controller('aiconnect/v1')
 export class AuthController {
@@ -15,5 +15,20 @@ export class AuthController {
   @Post('session-end')
   async sessionEnd(@Headers('sessionid') sessionId: string, @Body(new ValidationPipe({ transform: true })) body?: Partial<SessionInitDto>) {
     return this.authService.sessionEnd(sessionId, body?.ReqId, body?.ReqCode);
+  }
+
+  @Get('version')
+  async getVersion(@Query('ReqId') reqId?: string, @Query('ReqCode') reqCode?: string) {
+    return this.authService.getVersion(reqId, reqCode);
+  }
+
+  @Get('health')
+  async health() {
+    return this.authService.health();
+  }
+
+  @Post('encrypt')
+  async encrypt(@Body(new ValidationPipe({ transform: true })) body: EncryptRequestDto) {
+    return this.authService.encrypt(body.Data, body.ReqId, body.ReqCode);
   }
 }
