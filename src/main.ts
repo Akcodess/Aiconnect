@@ -6,7 +6,7 @@ import * as http from 'http';
 import * as https from 'https';
 import * as fs from 'fs';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 
 import { ResponseExceptionFilter } from './common/filters/response-exception.filter';
 async function bootstrap() {
@@ -24,6 +24,10 @@ async function bootstrap() {
   app.useGlobalFilters(new ResponseExceptionFilter());
   // Enable CORS for all routes
   app.enableCors();
+
+  // Set global prefix and enable URI versioning so routes are served under /aiconnect/v1 and /aiconnect/v2
+  app.setGlobalPrefix(process.env.AICONNECT_V!);
+  app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
 
   // Initialize the Nest app without binding a single port
   await app.init();

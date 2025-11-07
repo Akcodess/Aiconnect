@@ -3,7 +3,7 @@ import { Controller, Post, Body, ValidationPipe, Headers } from '@nestjs/common'
 import { SessionService } from './session.service';
 import { SessionInitDto } from './dto/session.dto';
 
-@Controller(process.env.AICONNECT_V!)
+@Controller({ path: '', version: '1' })
 export class SessionController {
   constructor(private readonly sessionService: SessionService) { }
 

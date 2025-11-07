@@ -3,7 +3,7 @@ import { Controller, Get, Post, Body, ValidationPipe, Query } from '@nestjs/comm
 import { CommonService } from './common.service';
 import { EncryptRequestDto } from './dto/common.dto';
 
-@Controller(process.env.AICONNECT_V!)
+@Controller({ path: '', version: '1' })
 export class CommonController {
   constructor(private readonly commonService: CommonService) {}
 

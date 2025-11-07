@@ -5,7 +5,7 @@ import { AuthGuard } from '../common/guards/auth.guard';
 import { SentimentAnalysisQueryDto } from '../common/dto/sentiment.dto';
 import type { CustomJwtRequest } from '../common/types/sentiment.types';
 
-@Controller('sentiment')
+@Controller({ path: 'sentiment', version: '1' })
 export class SentimentController {
   constructor(private readonly sentimentService: SentimentService) {}
 
