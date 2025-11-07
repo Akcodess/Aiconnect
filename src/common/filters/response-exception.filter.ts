@@ -16,9 +16,11 @@ export class ResponseExceptionFilter implements ExceptionFilter {
     const status = exception.getStatus();
     const exceptionRes: any = exception.getResponse();
 
-    // Resolve message: if validation error (array), pick first; else use string or default
+    // Resolve message: prefer standardized body fields, then fall back to validation defaults
     let message: string = validationFailedMessage;
-    if (Array.isArray(exceptionRes?.message) && exceptionRes.message.length > 0) {
+    if (typeof exceptionRes?.Message === 'string' && exceptionRes.Message.trim() !== '') {
+      message = exceptionRes.Message;
+    } else if (Array.isArray(exceptionRes?.message) && exceptionRes.message.length > 0) {
       message = String(exceptionRes.message[0]);
     } else if (typeof exceptionRes === 'string') {
       message = exceptionRes;
@@ -26,21 +28,27 @@ export class ResponseExceptionFilter implements ExceptionFilter {
       message = exceptionRes.message;
     }
 
-    // Map EvCode based on status; default to SessionInitFailed for 400
-    let evCode: string = sessionResponseCodes.SessionInitFailed;
-    if (status === 401) {
-      evCode = sessionResponseCodes.Unauthorized;
-    } else if (status === 403) {
-      evCode = sessionResponseCodes.MissingToken;
-    } else if (status >= 500) {
-      evCode = sessionResponseCodes.SessionInitFailed;
+    // Resolve EvCode: prefer standardized body field if present, else map based on status
+    let evCode: string = typeof exceptionRes?.EvCode === 'string' && exceptionRes.EvCode.trim() !== ''
+      ? exceptionRes.EvCode
+      : sessionResponseCodes.SessionInitFailed;
+    if (evCode === sessionResponseCodes.SessionInitFailed) {
+      if (status === 401) {
+        evCode = sessionResponseCodes.Unauthorized;
+      } else if (status === 403) {
+        evCode = sessionResponseCodes.MissingToken;
+      } else if (status >= 500) {
+        evCode = sessionResponseCodes.SessionInitFailed;
+      }
     }
 
     const payload = {
       Message: message,
       TimeStamp: moment().format('YYYY-MM-DD HH:mm:ss'),
       EvCode: evCode,
-      EvType: EvType.Failed,
+      EvType: exceptionRes?.EvType ?? EvType.Failed,
+      ...(typeof exceptionRes?.ReqId === 'string' && { ReqId: exceptionRes.ReqId }),
+      ...(typeof exceptionRes?.ReqCode === 'string' && { ReqCode: exceptionRes.ReqCode }),
     };
 
     response.status(status).json(payload);

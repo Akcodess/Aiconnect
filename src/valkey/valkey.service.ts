@@ -259,7 +259,7 @@ export class ValkeyConfigService implements OnModuleInit, OnModuleDestroy {
   public async Get(key: string): Promise<string | null> {
     try {
       const result = await this.client.get(key);
-      this.logger.info(valkeyMessages.CacheHit, result ? valkeyMessages.CacheReturn : valkeyMessages.CacheNotFound);
+      // this.logger.info(valkeyMessages.CacheHit, result ? valkeyMessages.CacheReturn : valkeyMessages.CacheNotFound);
       return result;
     } catch (error) {
       this.logger.error(valkeyMessages.CacheError, error);

@@ -28,7 +28,7 @@ export class ResponseHelperService {
   // Nest-friendly failure: throws given Nest exception with common body format
   failNest(ExceptionCtor: new (response?: any) => Error, message: string, code: string, reqId?: string, reqCode?: string): never {
     const timeStamp = moment().format('YYYY-MM-DD HH:mm:ss');
-
+    
     const responseBody = {
       Message: message,
       TimeStamp: timeStamp,

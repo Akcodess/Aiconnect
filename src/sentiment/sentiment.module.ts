@@ -1,16 +1,20 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+
 import { SentimentController } from './sentiment.controller';
 import { SentimentService } from './sentiment.service';
 import { AIHandlerService } from './ai-handler.service';
-import { AuthGuard } from '../common/guards/auth.guard';
+import { AuthGuard } from '../common/guards/session.guard';
 import { ResponseHelperService } from '../common/helpers/response.helper';
 import { LoggingService } from '../common/utils/logging.util';
 import { TokenUtilityService } from '../common/utils/token.util';
-import { SentimentUtilityService } from '../common/utils/sentiment.util';
+import { SentimentUtilityService } from './utils/sentiment.util';
+import { OpenAIService } from '../common/utils/openai.util';
+import { ValkeyModule } from '../valkey/valkey.module';
+// Removed CommonModule import to localize sentiment-specific utilities
 
 @Module({
-  imports: [ConfigModule],
+  imports: [ConfigModule, ValkeyModule],
   controllers: [SentimentController],
   providers: [
     SentimentService,
@@ -20,7 +24,8 @@ import { SentimentUtilityService } from '../common/utils/sentiment.util';
     LoggingService,
     TokenUtilityService,
     SentimentUtilityService,
+    OpenAIService,
   ],
   exports: [SentimentService]
 })
-export class SentimentModule {}
+export class SentimentModule { }

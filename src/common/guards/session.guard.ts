@@ -2,7 +2,10 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Unauthor
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
+
 import { sessionResponseCodes, sessionResponseMessages } from '../../session/constants/session.constants';
+import { TokenUtilityService } from '../utils/token.util';
+import { CustomJwtRequest } from '../types/request.types';
 
 interface CustomJwtPayload {
   platform?: string;
@@ -13,16 +16,9 @@ interface CustomJwtPayload {
   exp?: number;
 }
 
-interface CustomJwtRequest extends Request {
-  XPlatformID?: string;
-  XPlatformSID?: string;
-  XPlatformUA?: any;
-  TenantCode?: string;
-}
-
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private configService: ConfigService) {}
+  constructor(private configService: ConfigService, private tokenUtilityService: TokenUtilityService) { }
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<CustomJwtRequest>();
@@ -35,7 +31,7 @@ export class AuthGuard implements CanActivate {
       });
     }
 
-    if (this.isTokenExpired(token)) {
+    if (this.tokenUtilityService?.IsTokenExpired(token)) {
       throw new UnauthorizedException({
         code: sessionResponseCodes.TokenInvalid,
         message: sessionResponseMessages.TokenInvalid,
@@ -52,7 +48,7 @@ export class AuthGuard implements CanActivate {
 
     try {
       const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-      
+
       request.XPlatformID = decoded.platform ?? '';
       request.XPlatformSID = decoded.services ?? '';
       request.XPlatformUA = decoded.user ? JSON.parse(decoded.user) : {};
@@ -72,18 +68,6 @@ export class AuthGuard implements CanActivate {
         code: sessionResponseCodes.Unauthorized,
         message: sessionResponseMessages.Unauthorized,
       });
-    }
-  }
-
-  private isTokenExpired(token: string): boolean {
-    try {
-      const decoded = jwt.decode(token) as any;
-      if (!decoded || !decoded.exp) {
-        return true;
-      }
-      return Date.now() >= decoded.exp * 1000;
-    } catch {
-      return true;
     }
   }
 }

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-// import { SentimentModule } from './sentiment/sentiment.module';
+import { SentimentModule } from './sentiment/sentiment.module';
 
 import { SessionModule } from './session/session.module';
 import { ValkeyModule } from './valkey/valkey.module';
@@ -14,7 +14,7 @@ import { CommonModule } from './common/common.module';
         envFilePath: '.env',
       }
     ),
-    // SentimentModule,
+    SentimentModule,
     SessionModule,
     ValkeyModule,
     CommonModule

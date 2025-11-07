@@ -1,49 +1,78 @@
 import { Injectable } from '@nestjs/common';
-import { AIHandlerParams } from '../common/types/sentiment.types';
+import { LanguageServiceClient } from '@google-cloud/language';
+
+import { AIHandlerParams } from './types/sentiment.types';
+import { LoggingService } from '../common/utils/logging.util';
+import { SentimentUtilityService } from './utils/sentiment.util';
+import { PromptHelper } from '../common/helpers/prompt.helper';
+import { OpenAIService } from '../common/utils/openai.util';
+import { googleCloudMesssages, openaiMessages } from './constants/sentiment.constants';
 
 @Injectable()
 export class AIHandlerService {
+  constructor(private logger: LoggingService, private sentimentUtil: SentimentUtilityService, private openai: OpenAIService) { }
+
+  // Dispatcher aligned with requested platforms
   private readonly sentimentHandlers: Record<string, (params: AIHandlerParams) => Promise<any>> = {
-    'google': this.handleGoogleSentiment.bind(this),
-    'aws': this.handleAWSSentiment.bind(this),
-    'azure': this.handleAzureSentiment.bind(this),
-    'default': this.handleDefaultSentiment.bind(this),
+    openai: this.handleOpenAI.bind(this),
+    googlecloud: this.handleGoogleCloud.bind(this),
   };
 
   async handleSentimentAnalysis(params: AIHandlerParams, platform: string): Promise<any> {
-    const handler = this.sentimentHandlers[platform] || this.sentimentHandlers['default'];
+    const key = platform?.toLowerCase();
+    const handler = this.sentimentHandlers[key];
     return await handler(params);
   }
 
-  private async handleGoogleSentiment(params: AIHandlerParams): Promise<any> {
-    // Placeholder for Google Cloud Sentiment Analysis
-    // This would integrate with Google Cloud Natural Language API
-    return Math.random() * 2 - 1; // Returns score between -1 and 1
-  }
+  // OPENAI implementation via Chat Completions API (SDK)
+  private async handleOpenAI({ Message, SentenceScore, APIKey }: AIHandlerParams): Promise<number | Record<number, { Category: string; Score: number }> | null> {
+    try {
+      const prompt = SentenceScore === 'T' ? PromptHelper.BuildSentanceSentimentPrompt(Message) : PromptHelper.BuildSentimentPrompt(Message);
 
-  private async handleAWSSentiment(params: AIHandlerParams): Promise<any> {
-    // Placeholder for AWS Comprehend Sentiment Analysis
-    // This would integrate with AWS Comprehend API
-    return Math.random() * 2 - 1; // Returns score between -1 and 1
-  }
+      const raw = await this.openai.chatCompletion(prompt, APIKey);
+      if (!raw) return null;
 
-  private async handleAzureSentiment(params: AIHandlerParams): Promise<any> {
-    // Placeholder for Azure Text Analytics Sentiment Analysis
-    // This would integrate with Azure Cognitive Services
-    return Math.random() * 2 - 1; // Returns score between -1 and 1
-  }
-
-  private async handleDefaultSentiment(params: AIHandlerParams): Promise<any> {
-    // Default sentiment analysis implementation
-    if (params.SentenceScore === 'T') {
-      // Return sentence-level analysis
-      return {
-        sentences: [
-          { text: params.Message.substring(0, 50), score: Math.random() * 2 - 1 },
-          { text: params.Message.substring(50), score: Math.random() * 2 - 1 }
-        ]
-      };
+      if (SentenceScore === 'T') {
+        return JSON.parse(raw);
+      } else {
+        return isNaN(parseFloat(raw)) ? null : parseFloat(raw);
+      }
+    } catch (err: any) {
+      this.logger.error(openaiMessages?.OpenaiHandlerError, err?.message || err);
+      return null;
     }
-    return Math.random() * 2 - 1; // Returns overall score between -1 and 1
+  }
+
+  // GoogleCloud implementation placeholder (no external SDK usage to keep build clean)
+  private async handleGoogleCloud({ Message, SentenceScore, APIKey, ClientEmail, ProjectId }: AIHandlerParams): Promise<number | Record<number, { Category: string; Score: number }> | null> {
+    try {
+      const client = new LanguageServiceClient({
+        credentials: { private_key: APIKey, client_email: ClientEmail },
+        projectId: ProjectId,
+      });
+
+      const [result] = await client.analyzeSentiment({
+        document: { content: Message!, type: 'PLAIN_TEXT' },
+      });
+      const baseScore = typeof result?.documentSentiment?.score === 'number' ? result.documentSentiment.score : 0;
+      const overall = parseFloat(baseScore.toFixed(2));
+
+      if (SentenceScore === 'T' && Array.isArray(result?.sentences) && result.sentences.length) {
+        const sentenceScores: Record<number, { Category: string; Score: number }> = {};
+        result.sentences.forEach((sentence: any, index: number) => {
+          const s = typeof sentence?.sentiment?.score === 'number' ? sentence.sentiment.score : 0;
+          sentenceScores[index + 1] = {
+            Category: this.sentimentUtil.getSentimentLabel(s),
+            Score: parseFloat(s.toFixed(2)),
+          };
+        });
+        return sentenceScores;
+      } else {
+        return overall;
+      }
+    } catch (err: any) {
+      this.logger.error(googleCloudMesssages?.GoogleCloudHandlerError, err?.message || err);
+      return null;
+    }
   }
 }

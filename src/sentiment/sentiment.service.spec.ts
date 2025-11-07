@@ -4,7 +4,7 @@ import { AIHandlerService } from './ai-handler.service';
 import { ResponseHelperService } from '../common/helpers/response.helper';
 import { LoggingService } from '../common/utils/logging.util';
 import { TokenUtilityService } from '../common/utils/token.util';
-import { SentimentUtilityService } from '../common/utils/sentiment.util';
+import { SentimentUtilityService } from './utils/sentiment.util';
 import { ConfigService } from '@nestjs/config';
 
 describe('SentimentService', () => {

@@ -1,15 +1,15 @@
-// Shared response constants with direct values (no enum imports)
-export const responseCodes = {
-  XPLATFORM_SID_MISMATCH: 'XPLATFORM_SID_MISMATCH',
-  SENTIMENT_ANALYSIS_COMPLETED: 'SENTIMENT_ANALYSIS_COMPLETED',
-  INTERNAL_SERVER_ERROR: 'INTERNAL_SERVER_ERROR',
+// Shared response constants with PascalCase names
+export const commonResponseCodes = {
+  XPlatformSidMismatch: 'XPlatformSidMismatch',
+  SentimentAnalysisCompleted: 'SentimentAnalysisCompleted',
+  InternalServerError: 'InternalServerError',
 } as const;
 
-export const responseMessages = {
-  SID_MISMATCH: 'SID mismatch',
-  CACHED_RESULT: 'Cached result',
-  ANALYSIS_SUCCESS: 'Sentiment analysis completed successfully',
-  ANALYSIS_STARTED: 'Sentiment analysis started',
-  ANALYSIS_FAILED: 'Sentiment analysis failed',
-  INTERNAL_ERROR: 'Internal server error',
+export const commonResponseMessages = {
+  SidMismatch: 'XPlatformSID does not match',
+  CachedResult: 'Returning cached sentiment result',
+  AnalysisSuccess: 'Sentiment analysis completed successfully',
+  AnalysisStarted: 'Sentiment analysis started',
+  AnalysisFailed: 'Sentiment analysis failed',
+  InternalError: 'Internal server error',
 } as const;

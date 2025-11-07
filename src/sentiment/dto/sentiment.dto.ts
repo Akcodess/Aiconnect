@@ -1,31 +1,31 @@
-import { IsOptional, IsString, IsEnum } from 'class-validator';
+import { IsOptional, IsString, IsEnum, IsNotEmpty } from 'class-validator';
 
 export class SentimentAnalysisQueryDto {
-  @IsOptional()
   @IsString()
-  Message?: string;
+  @IsNotEmpty()
+  Message!: string;
 
-  @IsOptional()
   @IsString()
-  MessageID?: string;
+  @IsNotEmpty()
+  MessageID!: string;
 
-  @IsOptional()
   @IsString()
+  @IsNotEmpty()
   ReqId?: string;
 
-  @IsOptional()
   @IsString()
+  @IsNotEmpty()
   ReqCode?: string;
 
-  @IsOptional()
   @IsString()
-  UXID?: string;
+  @IsNotEmpty()
+  UXID!: string;
 
-  @IsOptional()
   @IsString()
-  ProcessCode?: string;
+  @IsNotEmpty()
+  ProcessCode!: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsEnum(['T', 'F'])
   SentenceScore?: 'T' | 'F';
 

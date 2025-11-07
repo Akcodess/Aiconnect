@@ -20,9 +20,9 @@ export class TokenUtilityService {
     }
   }
 
-  isTokenExpired(exp: number): boolean {
-    const currentTime = Math.floor(Date.now() / 1000);
-    return exp < currentTime;
+  IsTokenExpired(token: string): boolean {
+    const tokens = this.ReadExpiredTokens();
+    return tokens.includes(token);
   }
 
   EncryptData(plainText: string): string {
