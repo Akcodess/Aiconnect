@@ -2,7 +2,8 @@ import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { CustomJwtRequest, SentimentQueryDto, SessionEntry, PlatformSID } from '../common/types/sentiment.types';
-import { ResponseCodes, ResponseMessages } from '../common/enums/response.enums';
+import { responseCodes, responseMessages } from '../common/constants/response.constants';
+import { sentimentRequestLog, sentimentLogPrefix } from './constants/sentiment.constants';
 import { ResponseHelperService } from '../common/helpers/response.helper';
 import { LoggingService } from '../common/utils/logging.util';
 import { SentimentUtilityService } from '../common/utils/sentiment.util';
@@ -43,15 +44,15 @@ export class SentimentService {
       OverallScore 
     } = query;
 
-    this.loggingService.info('Sentiment Request:', JSON.stringify(query));
+    this.loggingService.info(sentimentRequestLog, JSON.stringify(query));
 
     // Validate platform SID
     if (xplatformSID !== PlatformSID.SentimentDetection) {
       return this.responseHelper.fail(
         res,
         400,
-        ResponseMessages.SID_MISMATCH,
-        ResponseCodes.XPLATFORM_SID_MISMATCH,
+        responseMessages.SID_MISMATCH,
+        responseCodes.XPLATFORM_SID_MISMATCH,
         ReqId,
         ReqCode
       );
@@ -63,7 +64,7 @@ export class SentimentService {
       const cached = this.sentimentCache.get(cacheKey);
 
       if (cached) {
-        this.loggingService.info(ResponseMessages.CACHED_RESULT);
+        this.loggingService.info(responseMessages.CACHED_RESULT);
         const averageScore = await this.sentimentUtil.calculateAverageScore(
           'sentiment', 
           ProcessCode, 
@@ -74,15 +75,15 @@ export class SentimentService {
         
         return this.responseHelper.success(
           res,
-          ResponseMessages.ANALYSIS_SUCCESS,
-          ResponseCodes.SENTIMENT_ANALYSIS_COMPLETED,
+          responseMessages.ANALYSIS_SUCCESS,
+          responseCodes.SENTIMENT_ANALYSIS_COMPLETED,
           responseWithAvg,
           ReqId,
           ReqCode
         );
       }
 
-      this.loggingService.info(ResponseMessages.ANALYSIS_STARTED, xplatform);
+      this.loggingService.info(responseMessages.ANALYSIS_STARTED, xplatform);
 
       // Perform sentiment analysis
       let score: number | any = null;
@@ -108,7 +109,7 @@ export class SentimentService {
       }
 
       const sentimentLabel = this.sentimentUtil.getSentimentLabel(score);
-      this.loggingService.info('Sentiment:', sentimentLabel, score, JSON.stringify(sentenceScores));
+      this.loggingService.info(sentimentLogPrefix, sentimentLabel, score, JSON.stringify(sentenceScores));
 
       const averageScore = await this.sentimentUtil.calculateAverageScore(
         'sentiment', 
@@ -142,20 +143,20 @@ export class SentimentService {
 
       return this.responseHelper.success(
         res,
-        ResponseMessages.ANALYSIS_SUCCESS,
-        ResponseCodes.SENTIMENT_ANALYSIS_COMPLETED,
+        responseMessages.ANALYSIS_SUCCESS,
+        responseCodes.SENTIMENT_ANALYSIS_COMPLETED,
         responseEntry.Response,
         ReqId,
         ReqCode
       );
 
     } catch (error: any) {
-      this.loggingService.error(ResponseMessages.ANALYSIS_FAILED, error);
+      this.loggingService.error(responseMessages.ANALYSIS_FAILED, error);
       return this.responseHelper.fail(
         res,
         500,
-        ResponseMessages.INTERNAL_ERROR,
-        ResponseCodes.INTERNAL_SERVER_ERROR,
+        responseMessages.INTERNAL_ERROR,
+        responseCodes.INTERNAL_SERVER_ERROR,
         ReqId,
         ReqCode
       );

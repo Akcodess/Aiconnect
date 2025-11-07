@@ -2,7 +2,7 @@ import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 import { Transform, Expose } from 'class-transformer';
 import moment from 'moment';
 
-import { ResponseCodes, ResponseMessages } from '../enums/session-response.enums';
+import { sessionResponseCodes, sessionResponseMessages } from '../constants/session.constants';
 import { EvType } from '../../common/enums/evtype.enums';
 
 export class SessionInitDto {
@@ -45,7 +45,7 @@ export class SessionInitDto {
 
 export class SessionInitResponseDto {
   @Expose()
-  @Transform(({ value }) => value ?? ResponseMessages.SessionInitSuccess)
+  @Transform(({ value }) => value ?? sessionResponseMessages.SessionInitSuccess)
   Message!: string;
 
   @Expose()
@@ -53,8 +53,8 @@ export class SessionInitResponseDto {
   TimeStamp!: string;
 
   @Expose()
-  @Transform(({ value }) => value ?? ResponseCodes.SessionInitSuccess)
-  EvCode!: ResponseCodes;
+  @Transform(({ value }) => value ?? sessionResponseCodes.SessionInitSuccess)
+  EvCode!: string;
 
   @Expose()
   @Transform(({ value }) => value ?? EvType.Success)
@@ -79,7 +79,7 @@ export class SessionInitResponseDto {
 
 export class SessionEndResponseDto {
   @Expose()
-  @Transform(({ value }) => value ?? ResponseMessages.SessionEndSuccess)
+  @Transform(({ value }) => value ?? sessionResponseMessages.SessionEndSuccess)
   Message!: string;
 
   @Expose()
@@ -87,8 +87,8 @@ export class SessionEndResponseDto {
   TimeStamp!: string;
 
   @Expose()
-  @Transform(({ value }) => value ?? ResponseCodes.SessionInitSuccess)
-  EvCode!: ResponseCodes;
+  @Transform(({ value }) => value ?? sessionResponseCodes.SessionInitSuccess)
+  EvCode!: string;
 
   @Expose()
   @Transform(({ value }) => value ?? EvType.Success)

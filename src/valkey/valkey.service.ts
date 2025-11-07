@@ -4,7 +4,7 @@ import { createClient, RedisClientType } from 'redis';
 import * as crypto from 'crypto';
 
 import { LoggingService } from '../common/utils/logging.util';
-import { ValkeyMessages } from './valkey.enums';
+import { valkeyMessages } from './valkey.constant';
 
 @Injectable()
 export class ValkeyConfigService implements OnModuleInit, OnModuleDestroy {
@@ -24,12 +24,12 @@ export class ValkeyConfigService implements OnModuleInit, OnModuleDestroy {
       password: this.configService.get<string>('REDIS_PASSWORD'),
     });
 
-    this.client.on('error', (err) => this.logger.error(ValkeyMessages.CacheError, err));
+    this.client.on('error', (err) => this.logger.error(valkeyMessages.CacheError, err));
     this.client.on('connect', () => {
-      this.logger.info(`${ValkeyMessages.CacheListen} ${this.configService.get<string>('REDIS_PORT')}`);
+      this.logger.info(`${valkeyMessages.CacheListen} ${this.configService.get<string>('REDIS_PORT')}`);
     });
     this.client.on('disconnect', () => {
-      this.logger.info(ValkeyMessages.CacheDisconnect);
+      this.logger.info(valkeyMessages.CacheDisconnect);
     });
   }
 
@@ -45,7 +45,7 @@ export class ValkeyConfigService implements OnModuleInit, OnModuleDestroy {
     try {
       await this.client.connect();
     } catch (error) {
-      this.logger.error(ValkeyMessages.CacheError, error);
+      this.logger.error(valkeyMessages.CacheError, error);
       throw error;
     }
   }
@@ -54,7 +54,7 @@ export class ValkeyConfigService implements OnModuleInit, OnModuleDestroy {
     try {
       await this.client.disconnect();
     } catch (error) {
-      this.logger.error(ValkeyMessages.CacheError, error);
+      this.logger.error(valkeyMessages.CacheError, error);
       throw error;
     }
   }
@@ -64,7 +64,7 @@ export class ValkeyConfigService implements OnModuleInit, OnModuleDestroy {
     try {
       await this.client.select(dbNumber);
     } catch (error) {
-      this.logger.error(ValkeyMessages.CacheError, error);
+      this.logger.error(valkeyMessages.CacheError, error);
       throw error;
     }
   }
@@ -218,7 +218,7 @@ export class ValkeyConfigService implements OnModuleInit, OnModuleDestroy {
 
       return groupedKeys;
     } catch (error) {
-      this.logger.error(ValkeyMessages.CacheError, error);
+      this.logger.error(valkeyMessages.CacheError, error);
       throw error;
     }
   }
@@ -249,9 +249,9 @@ export class ValkeyConfigService implements OnModuleInit, OnModuleDestroy {
   public async Set(key: string, value: any): Promise<void> {
     try {
       await this.client.set(key, JSON.stringify(value));
-      this.logger.info(ValkeyMessages.CacheSet);
+      this.logger.info(valkeyMessages.CacheSet);
     } catch (error) {
-      this.logger.error(ValkeyMessages.CacheError, error);
+      this.logger.error(valkeyMessages.CacheError, error);
       throw error;
     }
   }
@@ -259,10 +259,10 @@ export class ValkeyConfigService implements OnModuleInit, OnModuleDestroy {
   public async Get(key: string): Promise<string | null> {
     try {
       const result = await this.client.get(key);
-      this.logger.info(ValkeyMessages.CacheHit, result ? ValkeyMessages.CacheReturn : ValkeyMessages.CacheNotFound);
+      this.logger.info(valkeyMessages.CacheHit, result ? valkeyMessages.CacheReturn : valkeyMessages.CacheNotFound);
       return result;
     } catch (error) {
-      this.logger.error(ValkeyMessages.CacheError, error);
+      this.logger.error(valkeyMessages.CacheError, error);
       throw error;
     }
   }
@@ -270,10 +270,10 @@ export class ValkeyConfigService implements OnModuleInit, OnModuleDestroy {
   public async Delete(key: string): Promise<number> {
     try {
       const result = await this.client.del(key);
-      this.logger.info(ValkeyMessages.CacheDelete);
+      this.logger.info(valkeyMessages.CacheDelete);
       return result;
     } catch (error) {
-      this.logger.error(ValkeyMessages.CacheError, error);
+      this.logger.error(valkeyMessages.CacheError, error);
       throw error;
     }
   }
@@ -282,7 +282,7 @@ export class ValkeyConfigService implements OnModuleInit, OnModuleDestroy {
     try {
       return await this.client.exists(key);
     } catch (error) {
-      this.logger.error(ValkeyMessages.CacheError, error);
+      this.logger.error(valkeyMessages.CacheError, error);
       throw error;
     }
   }
@@ -291,7 +291,7 @@ export class ValkeyConfigService implements OnModuleInit, OnModuleDestroy {
     try {
       return await this.client.keys(pattern);
     } catch (error) {
-      this.logger.error(ValkeyMessages.CacheError, error);
+      this.logger.error(valkeyMessages.CacheError, error);
       throw error;
     }
   }
@@ -299,10 +299,10 @@ export class ValkeyConfigService implements OnModuleInit, OnModuleDestroy {
   public async FlushDb(): Promise<string> {
     try {
       const result = await this.client.flushDb();
-      this.logger.info(ValkeyMessages.CacheFlush);
+      this.logger.info(valkeyMessages.CacheFlush);
       return result;
     } catch (error) {
-      this.logger.error(ValkeyMessages.CacheError, error);
+      this.logger.error(valkeyMessages.CacheError, error);
       throw error;
     }
   }
@@ -318,7 +318,7 @@ export class ValkeyConfigService implements OnModuleInit, OnModuleDestroy {
       this.logger.info(`Message published to ${channel}. Subscribers: ${subscribers}`);
       return subscribers;
     } catch (error) {
-      this.logger.error(ValkeyMessages.CacheError, error);
+      this.logger.error(valkeyMessages.CacheError, error);
       throw error;
     }
   }

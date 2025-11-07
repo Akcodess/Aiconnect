@@ -1,8 +1,9 @@
 import { Catch, ExceptionFilter, ArgumentsHost, HttpException } from '@nestjs/common';
 import moment from 'moment';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 
-import { ResponseCodes } from '../../session/enums/session-response.enums';
+import { sessionResponseCodes } from '../../session/constants/session.constants';
+import { validationFailedMessage } from '../constants/common.constants';
 import { EvType } from '../enums/evtype.enums';
 
 @Catch(HttpException)
@@ -16,7 +17,7 @@ export class ResponseExceptionFilter implements ExceptionFilter {
     const exceptionRes: any = exception.getResponse();
 
     // Resolve message: if validation error (array), pick first; else use string or default
-    let message: string = 'Request validation failed';
+    let message: string = validationFailedMessage;
     if (Array.isArray(exceptionRes?.message) && exceptionRes.message.length > 0) {
       message = String(exceptionRes.message[0]);
     } else if (typeof exceptionRes === 'string') {
@@ -26,13 +27,13 @@ export class ResponseExceptionFilter implements ExceptionFilter {
     }
 
     // Map EvCode based on status; default to SessionInitFailed for 400
-    let evCode: ResponseCodes = ResponseCodes.SessionInitFailed;
+    let evCode: string = sessionResponseCodes.SessionInitFailed;
     if (status === 401) {
-      evCode = ResponseCodes.Unauthorized;
+      evCode = sessionResponseCodes.Unauthorized;
     } else if (status === 403) {
-      evCode = ResponseCodes.MissingToken;
+      evCode = sessionResponseCodes.MissingToken;
     } else if (status >= 500) {
-      evCode = ResponseCodes.SessionInitFailed;
+      evCode = sessionResponseCodes.SessionInitFailed;
     }
 
     const payload = {

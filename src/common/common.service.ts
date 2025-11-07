@@ -3,7 +3,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { TokenUtilityService } from './utils/token.util';
 import { LoggingService } from './utils/logging.util';
 import { ResponseHelperService } from './helpers/response.helper';
-import { CommonResponseCodes, CommonResponseMessages } from './enums/common-response.enums';
+import { commonResponseCodes, commonResponseMessages, commonHealthOkText } from './constants/common.constants';
 
 @Injectable()
 export class CommonService {
@@ -22,10 +22,10 @@ export class CommonService {
       },
     };
 
-    this.logger.info(CommonResponseMessages.VersionFetched);
+    this.logger.info(commonResponseMessages.VersionFetched);
     return this.responseHelper.successNest(
-      CommonResponseMessages.VersionFetched,
-      CommonResponseCodes.VersionInfoFetch,
+      commonResponseMessages.VersionFetched,
+      commonResponseCodes.VersionInfoFetch,
       versionInfo,
       reqId,
       reqCode,
@@ -33,22 +33,22 @@ export class CommonService {
   }
 
   async health(): Promise<any> {
-    const healthData = { Text: 'OK', Status: 200 };
-    this.logger.info(CommonResponseMessages.HealthOk);
+    const healthData = { Text: commonHealthOkText, Status: 200 };
+    this.logger.info(commonResponseMessages.HealthOk);
     return healthData;
   }
 
   async encrypt(data: any, reqId?: string, reqCode?: string): Promise<any> {
     if (!data) {
-      return this.responseHelper.failNest(BadRequestException, CommonResponseMessages.EncryptFailed, CommonResponseCodes.EncryptFailed, reqId, reqCode);
+      return this.responseHelper.failNest(BadRequestException, commonResponseMessages.EncryptFailed, commonResponseCodes.EncryptFailed, reqId, reqCode);
     }
     try {
       const ciphertext = this.tokenUtil.EncryptData(JSON.stringify(data));
-      this.logger.info(CommonResponseMessages.EncryptSuccess);
-      return this.responseHelper.successNest(CommonResponseMessages.EncryptSuccess, CommonResponseCodes.EncryptSuccess, { EncryptData: ciphertext }, reqId, reqCode);
+      this.logger.info(commonResponseMessages.EncryptSuccess);
+      return this.responseHelper.successNest(commonResponseMessages.EncryptSuccess, commonResponseCodes.EncryptSuccess, { EncryptData: ciphertext }, reqId, reqCode);
     } catch (error: any) {
-      this.logger.error(CommonResponseMessages.EncryptFailed, error?.message || error);
-      return this.responseHelper.failNest(BadRequestException, CommonResponseMessages.EncryptFailed, CommonResponseCodes.EncryptFailed, reqId, reqCode);
+      this.logger.error(commonResponseMessages.EncryptFailed, error?.message || error);
+      return this.responseHelper.failNest(BadRequestException, commonResponseMessages.EncryptFailed, commonResponseCodes.EncryptFailed, reqId, reqCode);
     }
   }
 }

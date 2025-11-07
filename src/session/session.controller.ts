@@ -16,5 +16,4 @@ export class SessionController {
   async sessionEnd(@Headers('sessionid') sessionId: string, @Body(new ValidationPipe({ transform: true })) body?: Partial<SessionInitDto>) {
     return this.sessionService.sessionEnd(sessionId, body?.ReqId, body?.ReqCode);
   }
-
 }

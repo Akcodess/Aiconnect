@@ -2,7 +2,7 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Unauthor
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { ResponseCodes, ResponseMessages } from '../../session/enums/session-response.enums';
+import { sessionResponseCodes, sessionResponseMessages } from '../../session/constants/session.constants';
 
 interface CustomJwtPayload {
   platform?: string;
@@ -30,23 +30,23 @@ export class AuthGuard implements CanActivate {
 
     if (!token) {
       throw new ForbiddenException({
-        code: ResponseCodes.MissingToken,
-        message: ResponseMessages.MissingToken,
+        code: sessionResponseCodes.MissingToken,
+        message: sessionResponseMessages.MissingToken,
       });
     }
 
     if (this.isTokenExpired(token)) {
       throw new UnauthorizedException({
-        code: ResponseCodes.TokenInvalid,
-        message: ResponseMessages.TokenInvalid,
+        code: sessionResponseCodes.TokenInvalid,
+        message: sessionResponseMessages.TokenInvalid,
       });
     }
 
     const secret = this.configService.get<string>('JWT_SECRET');
     if (!secret) {
       throw new InternalServerErrorException({
-        code: ResponseCodes.JwtSecretMissing,
-        message: ResponseMessages.JwtSecret,
+        code: sessionResponseCodes.JwtSecretMissing,
+        message: sessionResponseMessages.JwtSecret,
       });
     }
 
@@ -61,16 +61,16 @@ export class AuthGuard implements CanActivate {
       const allowedPlatforms = this.configService.get<string>('XPLATFORMID');
       if (!allowedPlatforms?.includes(decoded.platform || '')) {
         throw new UnauthorizedException({
-          code: ResponseCodes.XPlatformIdMismatch,
-          message: ResponseMessages.IdMismatch,
+          code: sessionResponseCodes.XPlatformIdMismatch,
+          message: sessionResponseMessages.IdMismatch,
         });
       }
 
       return true;
     } catch (error) {
       throw new UnauthorizedException({
-        code: ResponseCodes.Unauthorized,
-        message: ResponseMessages.Unauthorized,
+        code: sessionResponseCodes.Unauthorized,
+        message: sessionResponseMessages.Unauthorized,
       });
     }
   }

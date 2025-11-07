@@ -6,8 +6,8 @@ import { SessionInitDto, SessionInitResponseDto, SessionEndResponseDto } from '.
 import { plainToInstance } from 'class-transformer';
 import { TokenUtilityService } from '../common/utils/token.util';
 import { LoggingService } from '../common/utils/logging.util';
-import { ResponseCodes, ResponseMessages } from './enums/session-response.enums';
 import { ResponseHelperService } from '../common/helpers/response.helper';
+import { sessionResponseCodes, sessionResponseMessages, sessionLogRequestBody } from './constants/session.constants';
 
 @Injectable()
 export class SessionService {
@@ -20,7 +20,7 @@ export class SessionService {
   // Initializes a session: validates tenant/user context, issues JWT, and
   // returns a standardized DTO response via ResponseHelper.
   async sessionInit(body: SessionInitDto): Promise<SessionInitResponseDto> {
-    this.logger.info('Request Body:', JSON.stringify(body));
+    this.logger.info(sessionLogRequestBody, JSON.stringify(body));
 
     const { ReqId, ReqCode, XPlatformID, XPlatformSID, XPlatformUA, TenantCode } = body;
 
@@ -31,8 +31,8 @@ export class SessionService {
       const matchedUA = this.tenantList.find((entry: any) => entry?.XPUAKey === XPlatformUA);
 
       if (!matchedUA) {
-        this.logger.error(ResponseMessages.InvalidTenant);
-        this.responseHelper.failNest(BadRequestException, ResponseMessages.InvalidTenant, ResponseCodes.InvalidTenant, ReqId, ReqCode);
+        this.logger.error(sessionResponseMessages.InvalidTenant);
+        this.responseHelper.failNest(BadRequestException, sessionResponseMessages.InvalidTenant, sessionResponseCodes.InvalidTenant, ReqId, ReqCode);
       }
 
       encryptedUA = this.tokenUtil.EncryptData(JSON.stringify(matchedUA?.XPUAProps));
@@ -41,8 +41,8 @@ export class SessionService {
 
     try {
       if (!this.tokenUtil.DecryptData(encryptedUA)) {
-        this.logger.error(ResponseMessages.InvalidUser);
-        this.responseHelper.failNest(BadRequestException, ResponseMessages.InvalidUser, ResponseCodes.InvalidUser, ReqId, ReqCode);
+        this.logger.error(sessionResponseMessages.InvalidUser);
+        this.responseHelper.failNest(BadRequestException, sessionResponseMessages.InvalidUser, sessionResponseCodes.InvalidUser, ReqId, ReqCode);
       }
 
       const payload = {
@@ -55,27 +55,20 @@ export class SessionService {
       const tokenResult = await this.tokenUtil.GenerateToken(payload);
 
       if (!tokenResult) {
-        this.responseHelper.failNest(InternalServerErrorException, ResponseMessages.SessionInitFailed, ResponseCodes.SessionInitFailed, ReqId, ReqCode);
+        this.responseHelper.failNest(InternalServerErrorException, sessionResponseMessages.SessionInitFailed, sessionResponseCodes.SessionInitFailed, ReqId, ReqCode);
       }
 
       const { token, expTime } = tokenResult;
-      this.logger.info(ResponseMessages.SessionInitSuccess);
+      this.logger.info(sessionResponseMessages.SessionInitSuccess);
 
       // Wrap with class-transformer to apply @Expose/@Transform on the DTO
       return plainToInstance(
-        SessionInitResponseDto,
-        this.responseHelper.successNest(
-          ResponseMessages.SessionInitSuccess,
-          ResponseCodes.SessionInitSuccess,
-          { Token: token, ExpiresIn: expTime },
-          ReqId,
-          ReqCode,
-        ),
-        { excludeExtraneousValues: true },
+        SessionInitResponseDto, this.responseHelper.successNest(sessionResponseMessages.SessionInitSuccess, sessionResponseCodes.SessionInitSuccess, { Token: token, ExpiresIn: expTime },
+          ReqId, ReqCode), { excludeExtraneousValues: true }
       );
     } catch (error: any) {
-      this.logger.error(ResponseMessages.SessionInitFailed, JSON.stringify(error?.response?.data) || error.message);
-      return this.responseHelper.failNest(InternalServerErrorException, ResponseMessages.SessionInitFailed, ResponseCodes.SessionInitFailed, ReqId, ReqCode);
+      this.logger.error(sessionResponseMessages.SessionInitFailed, JSON.stringify(error?.response?.data) || error.message);
+      return this.responseHelper.failNest(InternalServerErrorException, sessionResponseMessages.SessionInitFailed, sessionResponseCodes.SessionInitFailed, ReqId, ReqCode);
     }
   }
 
@@ -83,36 +76,25 @@ export class SessionService {
   // session-end response. Success shape includes Message, TimeStamp, EvCode, EvType.
   async sessionEnd(token: string, reqId?: string, reqCode?: string): Promise<SessionEndResponseDto> {
     if (!token) {
-      this.logger.error(ResponseMessages.MissingToken);
-      this.responseHelper.failNest(BadRequestException, ResponseMessages.MissingToken, ResponseCodes.MissingToken, reqId, reqCode);
+      this.logger.error(sessionResponseMessages.MissingToken);
+      this.responseHelper.failNest(BadRequestException, sessionResponseMessages.MissingToken, sessionResponseCodes.MissingToken, reqId, reqCode);
     }
 
     try {
       const decoded = this.tokenUtil.VerifyToken(token);
       if (!decoded) {
-        this.logger.error(ResponseMessages.TokenInvalid);
-        this.responseHelper.failNest(UnauthorizedException, ResponseMessages.TokenInvalid, ResponseCodes.TokenInvalid, reqId, reqCode);
+        this.logger.error(sessionResponseMessages.TokenInvalid);
+        this.responseHelper.failNest(UnauthorizedException, sessionResponseMessages.TokenInvalid, sessionResponseCodes.TokenInvalid, reqId, reqCode);
       }
 
-      this.logger.info(ResponseMessages.SessionEndSuccess, JSON.stringify(decoded));
+      this.logger.info(sessionResponseMessages.SessionEndSuccess, JSON.stringify(decoded));
       this.tokenUtil.AddExpiredToken(token);
-      this.logger.info(ResponseMessages.SessionEndSuccess);
+      this.logger.info(sessionResponseMessages.SessionEndSuccess);
 
-      return plainToInstance(SessionEndResponseDto, this.responseHelper.successNest(ResponseMessages.SessionEndSuccess, ResponseCodes.SessionEndSuccess, {}, reqId, reqCode), { excludeExtraneousValues: true });
+      return plainToInstance(SessionEndResponseDto, this.responseHelper.successNest(sessionResponseMessages.SessionEndSuccess, sessionResponseCodes.SessionEndSuccess, {}, reqId, reqCode), { excludeExtraneousValues: true });
     } catch (error: any) {
-      this.logger.error(ResponseMessages.TokenInvalid, JSON.stringify(error?.response?.data) || error.message);
-      return this.responseHelper.failNest(UnauthorizedException, ResponseMessages.TokenInvalid, ResponseCodes.TokenInvalid, reqId, reqCode);
+      this.logger.error(sessionResponseMessages.TokenInvalid, JSON.stringify(error?.response?.data) || error.message);
+      return this.responseHelper.failNest(UnauthorizedException, sessionResponseMessages.TokenInvalid, sessionResponseCodes.TokenInvalid, reqId, reqCode);
     }
   }
-
-  // Fetches application version info from environment variables and returns
-  // standardized success response following existing auth flow
-  // Moved to CommonService
-
-  // Health check endpoint: returns standardized success with Data payload
-  // Moved to CommonService
-
-  // Encrypt endpoint: encrypts provided Data using TokenUtilityService and returns
-  // standardized success response with EncryptData payload
-  // Moved to CommonService
 }
