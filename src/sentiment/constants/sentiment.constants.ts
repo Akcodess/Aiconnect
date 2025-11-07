@@ -1,6 +1,9 @@
 export const responseCodes = {
   SentimentAnalysisCompleted: 'SentimentAnalysisCompleted',
   InternalServerError: 'InternalServerError',
+  // Sentiment history endpoint codes
+  SentimentHistoryCompleted: 'SentimentHistoryCompleted',
+  SentimentHistoryFailed: 'SentimentHistoryFailed',
 } as const;
 
 export const responseMessages = {
@@ -8,6 +11,9 @@ export const responseMessages = {
   AnalysisStarted: 'Sentiment analysis started',
   AnalysisFailed: 'Sentiment analysis failed',
   InternalError: 'Internal server error',
+  // Sentiment history endpoint messages
+  HistorySuccess: 'Sentiment history fetched successfully',
+  HistoryFailed: 'No sentiment history found',
 } as const;
 
 // Hard-coded log messages used in SentimentService

@@ -9,6 +9,8 @@ import { SentimentAnalysisResponseEnvelopeDto } from './dto/sentiment-envelope.d
 import { SentimentTextChatDto } from './dto/sentiment-text-chat.dto';
 import { SentimentTextChatResponseDto } from './dto/sentiment-text-chat-response.dto';
 import { SentimentTextChatResponseEnvelopeDto } from './dto/sentiment-text-chat-envelope.dto';
+import { SentimentHistoryDto } from './dto/sentiment-history.dto';
+import { SentimentHistoryResponseEnvelopeDto } from './dto/sentiment-history-envelope.dto';
 import { responseCodes, responseMessages } from '../sentiment/constants/sentiment.constants';
 import { sentimentRequestLog, sentimentLogPrefix } from './constants/sentiment.constants';
 import { ResponseHelperService } from '../common/helpers/response.helper';
@@ -170,6 +172,70 @@ export class SentimentService {
     } catch (error: any) {
       this.loggingService.error(responseMessages?.AnalysisFailed, error);
       return this.responseHelper.failNest(InternalServerErrorException, responseMessages?.InternalError, responseCodes.InternalServerError, ReqId, ReqCode);
+    }
+  }
+
+  // Sentiment History: fetch cached sentiment analysis and text chat entries for a given ProcessCode and UXID
+  async getSentimentHistory(req: CustomJwtRequest, body: SentimentHistoryDto): Promise<SentimentHistoryResponseEnvelopeDto> {
+    const xplatformSID = req.XPlatformSID;
+    const { ReqId, ReqCode, UXID, ProcessCode } = body;
+    const tenantCode = req?.TenantCode?.toLocaleLowerCase()!;
+
+    this.loggingService.info(sentimentRequestLog, JSON.stringify(body));
+
+    if (xplatformSID !== PlatformSID?.SentimentDetection) {
+      return this.responseHelper.failNest(BadRequestException, commonResponseMessages?.SidMismatch, commonResponseCodes?.XPlatformSidMismatch, ReqId, ReqCode);
+    }
+
+    try {
+      const responses: unknown[] = [];
+
+      // Sentiment DB (0)
+      await this.valkey?.SwitchToDatabase?.(0);
+      const sentimentKeyPattern = `sentiment:${ProcessCode}:${'*'}:${'*'}:${tenantCode}`;
+      const sentimentKeys = await this.valkey?.ListKeys?.(sentimentKeyPattern);
+      if (Array.isArray(sentimentKeys?.sort())) {
+        for (const key of sentimentKeys!) {
+          const cached = await this.valkey?.GetSentiment?.(key);
+          if (cached) {
+            try {
+              const entry = JSON.parse(cached);
+              if (entry?.ProcessCode === ProcessCode && entry?.UXID === UXID && entry?.TenantCode === tenantCode && entry?.Response) {
+                responses.push(entry?.Response);
+              }
+            } catch { /* ignore parse errors */ }
+          }
+        }
+      }
+
+      // SentimentTextChat DB (5)
+      await this.valkey?.SwitchToDatabase?.(5);
+      const textChatKeyPattern = `sentimentTextChat:${ProcessCode}:${'*'}:${'*'}:${tenantCode}`;
+      const textChatKeys = await this.valkey?.ListKeys?.(textChatKeyPattern);
+      if (Array.isArray(textChatKeys?.sort())) {
+        for (const key of textChatKeys!) {
+          const cached = await this.valkey?.GetSentimentTextChat?.(key);
+          if (cached) {
+            try {
+              const entry = JSON.parse(cached);
+              if (entry?.ProcessCode === ProcessCode && entry?.UXID === UXID && entry?.TenantCode === tenantCode && entry?.Response) {
+                responses.push(entry?.Response);
+              }
+            } catch { /* ignore parse errors */ }
+          }
+        }
+      }
+
+      if (responses.length > 0) {
+        return plainToInstance(SentimentHistoryResponseEnvelopeDto, this.responseHelper.successNest(responseMessages?.HistorySuccess, responseCodes?.SentimentHistoryCompleted, responses, ReqId, ReqCode),
+          { excludeExtraneousValues: true }
+        );
+      } else {
+        return this.responseHelper.failNest(BadRequestException, responseMessages?.HistoryFailed, responseCodes?.SentimentHistoryFailed, ReqId, ReqCode);
+      }
+    } catch (error: any) {
+      this.loggingService.error(responseMessages?.AnalysisFailed, error);
+      return this.responseHelper.failNest(InternalServerErrorException, responseMessages?.InternalError, commonResponseCodes?.InternalServerError, ReqId, ReqCode);
     }
   }
 }
