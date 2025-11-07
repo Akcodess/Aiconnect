@@ -6,6 +6,9 @@ import { SessionEntry, PlatformSID } from './types/sentiment.types';
 import { SentimentAnalysisQueryDto } from './dto/sentiment.dto';
 import { SentimentAnalysisResponseDto } from './dto/sentiment-response.dto';
 import { SentimentAnalysisResponseEnvelopeDto } from './dto/sentiment-envelope.dto';
+import { SentimentTextChatDto } from './dto/sentiment-text-chat.dto';
+import { SentimentTextChatResponseDto } from './dto/sentiment-text-chat-response.dto';
+import { SentimentTextChatResponseEnvelopeDto } from './dto/sentiment-text-chat-envelope.dto';
 import { responseCodes, responseMessages } from '../sentiment/constants/sentiment.constants';
 import { sentimentRequestLog, sentimentLogPrefix } from './constants/sentiment.constants';
 import { ResponseHelperService } from '../common/helpers/response.helper';
@@ -60,11 +63,11 @@ export class SentimentService {
       let sentenceScores: any = null;
 
       if (OverallScore === 'T') {
-        score = await this.aiHandler.handleSentimentAnalysis({ Message, APIKey: apikey, ClientEmail: clientEmail, ProjectId: projectId }, xplatform);
+        score = await this.aiHandler?.handleSentimentAnalysis({ Message, APIKey: apikey, ClientEmail: clientEmail, ProjectId: projectId }, xplatform);
       }
 
       if (SentenceScore === 'T') {
-        sentenceScores = await this.aiHandler.handleSentimentAnalysis({ Message, SentenceScore: 'T', APIKey: apikey, ClientEmail: clientEmail, ProjectId: projectId }, xplatform);
+        sentenceScores = await this.aiHandler?.handleSentimentAnalysis({ Message, SentenceScore: 'T', APIKey: apikey, ClientEmail: clientEmail, ProjectId: projectId }, xplatform);
       }
 
       const sentimentLabel = this.sentimentUtil.getSentimentLabel(score) as SentimentCategoryEnum;
@@ -98,6 +101,70 @@ export class SentimentService {
       return plainToInstance(SentimentAnalysisResponseEnvelopeDto,
         this.responseHelper.successNest(responseMessages?.AnalysisSuccess, responseCodes.SentimentAnalysisCompleted, responseEntry.Response as SentimentAnalysisResponseDto,
           ReqId, ReqCode), { excludeExtraneousValues: true }
+      );
+
+    } catch (error: any) {
+      this.loggingService.error(responseMessages?.AnalysisFailed, error);
+      return this.responseHelper.failNest(InternalServerErrorException, responseMessages?.InternalError, responseCodes.InternalServerError, ReqId, ReqCode);
+    }
+  }
+
+  async analyzeSentimentTextChat(req: CustomJwtRequest, body: SentimentTextChatDto): Promise<SentimentTextChatResponseEnvelopeDto> {
+    const token = req.headers['sessionid'] as string;
+    const xplatform = req.XPlatformID as string;
+    const apikey = req.XPlatformUA?.APISecretKey;
+    const clientEmail = req.XPlatformUA?.ClientEmail;
+    const projectId = req.XPlatformUA?.ProjectId;
+    const xplatformSID = req.XPlatformSID;
+
+    const { Message, MessageID, ReqId, ReqCode, UXID, ProcessCode } = body;
+
+    this.loggingService.info(sentimentRequestLog, JSON.stringify(body));
+
+    if (xplatformSID !== PlatformSID?.SentimentDetection) {
+      return this.responseHelper.failNest(BadRequestException, commonResponseMessages?.SidMismatch, commonResponseCodes?.XPlatformSidMismatch, ReqId, ReqCode);
+    }
+
+    try {
+      // Cache key for text chat sentiment (db 5)
+      const cacheKey = this.valkey.createShortKey('sentimentTextChat', ProcessCode!, MessageID!, UXID!, [req?.TenantCode!]);
+      const cachedRaw = await this.valkey.GetSentimentTextChat(cacheKey);
+      const matchedEntry = cachedRaw ? JSON.parse(cachedRaw) : null;
+
+      if (matchedEntry) {
+        this.loggingService.info(commonResponseMessages?.CachedResult);
+        const averageScore = await this.sentimentUtil?.calculateAverageScore('sentimentTextChat', ProcessCode!, UXID!, req?.TenantCode!);
+        const responseWithAvg: SentimentTextChatResponseDto = { ...matchedEntry.Response, AverageScore: averageScore } as SentimentTextChatResponseDto;
+
+        return plainToInstance(SentimentTextChatResponseEnvelopeDto,
+          this.responseHelper.successNest(responseMessages?.AnalysisSuccess, responseCodes?.SentimentAnalysisCompleted, responseWithAvg, ReqId, ReqCode),
+          { excludeExtraneousValues: true }
+        );
+      }
+
+      this.loggingService.info(responseMessages?.AnalysisStarted, xplatform);
+
+      const result = await this.aiHandler?.handleSentimentTextChat({ Message, APIKey: apikey, ClientEmail: clientEmail, ProjectId: projectId }, xplatform);
+      this.loggingService.info(JSON.stringify(result));
+
+      const averageScore = await this.sentimentUtil?.calculateAverageScore('sentimentTextChat', ProcessCode!, UXID!, req?.TenantCode!);
+
+      const responseEntry = {
+        Token: token,
+        TenantCode: req?.TenantCode!,
+        ProcessCode,
+        UXID,
+        MessageID,
+        Response: {
+          Sentiment: result,
+          AverageScore: averageScore || 0,
+        } as SentimentTextChatResponseDto,
+      };
+
+      await this.valkey.SetSentimentTextChat(cacheKey, responseEntry);
+
+      return plainToInstance(SentimentTextChatResponseEnvelopeDto,
+        this.responseHelper.successNest(responseMessages?.AnalysisSuccess, responseCodes.SentimentAnalysisCompleted, responseEntry?.Response as SentimentTextChatResponseDto, ReqId, ReqCode)
       );
 
     } catch (error: any) {

@@ -20,7 +20,8 @@ export class ResponseHelperService {
       ReqCode: reqCode ?? '',
       ...(expiresIn !== '' && { ExpiresIn: expiresIn }),
       ...(token !== '' && { SessionId: token }),
-      ...(data && Object.keys(data).length > 0 && { Data: data }),
+      // Always include Data when provided (even if empty object or primitive)
+      ...((data !== undefined && data !== null) && { Data: data }),
     };
     return response;
   }

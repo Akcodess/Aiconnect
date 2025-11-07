@@ -4,6 +4,7 @@ export const commonResponseCodes = {
   HealthCheck: 'HealthCheck',
   EncryptSuccess: 'EncryptSuccess',
   EncryptFailed: 'EncryptFailed',
+  InternalErrorFailed: 'InternalErrorFailed',
 } as const;
 
 export const commonResponseMessages = {

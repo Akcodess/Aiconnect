@@ -58,7 +58,7 @@ Your task is to:
        - "Category": one of the categories listed above
        - "Score": a number between -1.0 and 1.0
 
-Important: Return **only** the valid JSON object. Do not include any explanation, commentary, or notes.
+Important: Return **only** the valid JSON object. Do not include any explanation, commentary, or notes such as markdown code fences (e.g., \`\`\`json) or backticks.
 
 Input:${JSON.stringify(message)}`;
   }

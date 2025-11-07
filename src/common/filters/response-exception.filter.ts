@@ -3,7 +3,7 @@ import moment from 'moment';
 import { Response, Request } from 'express';
 
 import { sessionResponseCodes } from '../../session/constants/session.constants';
-import { validationFailedMessage } from '../constants/common.constants';
+import { validationFailedMessage, commonResponseCodes } from '../constants/common.constants';
 import { EvType } from '../enums/evtype.enums';
 
 @Catch(HttpException)
@@ -31,14 +31,14 @@ export class ResponseExceptionFilter implements ExceptionFilter {
     // Resolve EvCode: prefer standardized body field if present, else map based on status
     let evCode: string = typeof exceptionRes?.EvCode === 'string' && exceptionRes.EvCode.trim() !== ''
       ? exceptionRes.EvCode
-      : sessionResponseCodes.SessionInitFailed;
-    if (evCode === sessionResponseCodes.SessionInitFailed) {
+      : commonResponseCodes?.InternalErrorFailed;
+    if (evCode === commonResponseCodes?.InternalErrorFailed) {
       if (status === 401) {
-        evCode = sessionResponseCodes.Unauthorized;
+        evCode = sessionResponseCodes?.Unauthorized;
       } else if (status === 403) {
-        evCode = sessionResponseCodes.MissingToken;
+        evCode = sessionResponseCodes?.MissingToken;
       } else if (status >= 500) {
-        evCode = sessionResponseCodes.SessionInitFailed;
+        evCode = commonResponseCodes?.InternalErrorFailed;
       }
     }
 
