@@ -44,7 +44,7 @@ export class DispositionService {
       if (cachedEntry) {
         this.logger.info(dispositionResponseMessages?.CachedResult);
         return plainToInstance(AutoDispositionResponseEnvelopeDto, this.responseHelper?.successNest(dispositionResponseMessages?.DispositionSuccess, dispositionResponseCodes?.AutoDispositionSuccess,
-          cachedEntry?.Response as AutoDispositionResponseDto, ReqId, ReqCode), { excludeExtraneousValues: true }
+          cachedEntry?.Response as AutoDispositionResponseDto, ReqId, ReqCode)
         );
       }
 
@@ -58,7 +58,7 @@ export class DispositionService {
       await this.valkey?.SetAutoDisposition(cacheKey, responseEntry);
 
       return plainToInstance(AutoDispositionResponseEnvelopeDto, this.responseHelper.successNest(dispositionResponseMessages?.DispositionSuccess,
-        dispositionResponseCodes?.AutoDispositionSuccess, responseEntry?.Response as AutoDispositionResponseDto, ReqId, ReqCode), { excludeExtraneousValues: true }
+        dispositionResponseCodes?.AutoDispositionSuccess, responseEntry?.Response as AutoDispositionResponseDto, ReqId, ReqCode)
       );
     } catch (err: any) {
       this.logger.error(dispositionResponseMessages?.DispositionFailed, err);

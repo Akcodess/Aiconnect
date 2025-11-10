@@ -64,7 +64,7 @@ export class LanguageTransService {
       await this.valkey?.SetLanguageTranslation(cacheKey, responseEntry);
 
       return plainToInstance(TranslationResponseEnvelopeDto, this.responseHelper.successNest(languageTransResponseMessages?.TranslationSuccess, languageTransResponseCodes?.TranslationSuccess,
-        responseEntry?.Response as TranslationResponseDto, ReqId, ReqCode), { excludeExtraneousValues: true },
+        responseEntry?.Response as TranslationResponseDto, ReqId, ReqCode)
       );
     } catch (err: any) {
       this.logger.error(languageTransResponseMessages?.TranslationFailed, err);

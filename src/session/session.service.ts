@@ -64,7 +64,7 @@ export class SessionService {
       // Wrap with class-transformer to apply @Expose/@Transform on the DTO
       return plainToInstance(
         SessionInitResponseDto, this.responseHelper.successNest(sessionResponseMessages.SessionInitSuccess, sessionResponseCodes.SessionInitSuccess, { Token: token, ExpiresIn: expTime },
-          ReqId, ReqCode), { excludeExtraneousValues: true }
+          ReqId, ReqCode)
       );
     } catch (error: any) {
       this.logger.error(sessionResponseMessages.SessionInitFailed, JSON.stringify(error?.response?.data) || error.message);
@@ -91,7 +91,7 @@ export class SessionService {
       this.tokenUtil.AddExpiredToken(token);
       this.logger.info(sessionResponseMessages.SessionEndSuccess);
 
-      return plainToInstance(SessionEndResponseDto, this.responseHelper.successNest(sessionResponseMessages.SessionEndSuccess, sessionResponseCodes.SessionEndSuccess, {}, reqId, reqCode), { excludeExtraneousValues: true });
+      return plainToInstance(SessionEndResponseDto, this.responseHelper.successNest(sessionResponseMessages.SessionEndSuccess, sessionResponseCodes.SessionEndSuccess, {}, reqId, reqCode));
     } catch (error: any) {
       this.logger.error(sessionResponseMessages.TokenInvalid, JSON.stringify(error?.response?.data) || error.message);
       return this.responseHelper.failNest(UnauthorizedException, sessionResponseMessages.TokenInvalid, sessionResponseCodes.TokenInvalid, reqId, reqCode);

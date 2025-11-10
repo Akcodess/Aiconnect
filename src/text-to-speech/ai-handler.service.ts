@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
+import { TextToSpeechClient, protos } from '@google-cloud/text-to-speech';
 
 import { LoggingService } from '../common/utils/logging.util';
 import { TextToSpeechDispatchOptions, TextToSpeechHandlerFn } from './types/tts.types';
@@ -54,30 +55,25 @@ export class TextToSpeechAIHandlerService {
   // private async handleGoogleCloud(options: TextToSpeechDispatchOptions): Promise<Uint8Array | null> {
   //   const { Message, VoiceModel, LanguageCode, SpeakingRate, creds } = options;
   //   try {
-  //     const client = new TextToSpeechClient({
-  //       credentials: { client_email: creds?.ClientEmail ?? '', private_key: creds?.APIKey ?? '' },
-  //       projectId: creds?.ProjectId,
+  //     const client = new textToSpeech.TextToSpeechClient({
+  //       credentials: { private_key: APIKey, client_email: ClientEmail },
+  //       projectId: ProjectId,
   //     });
 
-  //     const speakingRateNum: number | undefined = SpeakingRate ? Number(SpeakingRate) : undefined;
+  //     let normalizedMessage: string | null = Message!;
 
-  //     const request: protos.google.cloud.texttospeech.v1.ISynthesizeSpeechRequest = {
-  //       input: { text: Message ?? '' },
-  //       voice: {
-  //         languageCode: LanguageCode ?? 'en-US',
-  //         name: VoiceModel,
-  //       },
-  //       audioConfig: {
-  //         audioEncoding: protos.google.cloud.texttospeech.v1.AudioEncoding.MP3,
-  //         speakingRate: speakingRateNum,
-  //       },
-  //     };
+  //     if (LanguageCode) {
+  //       const prompt = HelperService?.promptHelper?.BuildTextToLanguageTranslate(Message!, LanguageCode!);
+  //       normalizedMessage = await this.CallGoogleCloudChat(prompt!, APIKey, ClientEmail, ProjectId);
+  //       logger.info("Normalized Message:", normalizedMessage);
+  //     }
 
-  //     const [response] = await client.synthesizeSpeech(request);
-  //     return response?.audioContent ?? null;
-  //   } catch (err: unknown) {
-  //     const message = err instanceof Error ? err.message : String(err);
-  //     this.logger.error('Google Cloud TTS handler error', message);
+  //     const validGenders = process.env.GOOGLECLOUD_SSML_GENDERS!;
+  //     const gender = validGenders.includes(VoiceModel as any) ? VoiceModel : 'NEUTRAL';
+  //     const [response] = await client.synthesizeSpeech({ input: { text: normalizedMessage }, voice: { languageCode: LanguageCode || 'en-US', ssmlGender: gender as any }, audioConfig: { audioEncoding: (process.env.AUDIO_EXT as any)?.toUpperCase(), speakingRate: parseFloat(SpeakingRate || '1.0') } });
+  //     return response.audioContent || null;
+  //   } catch (err: any) {
+  //     UtilService?.logger.error(EnumService?.googleCloudErrors?.HandlerError, err.message);
   //     return null;
   //   }
   // }

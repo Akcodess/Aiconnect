@@ -31,7 +31,7 @@ export class SentimentService {
     const apikey = req.XPlatformUA?.APISecretKey;
     const clientEmail = req.XPlatformUA?.ClientEmail;
     const projectId = req.XPlatformUA?.ProjectId;
-    const xplatformSID = req.XPlatformSID;
+    const xplatformSID = req?.XPlatformSID;
 
     const { Message, MessageID, ReqId, ReqCode, UXID, ProcessCode, SentenceScore, OverallScore } = query;
 
@@ -54,7 +54,7 @@ export class SentimentService {
         const responseWithAvg: SentimentAnalysisResponseDto = { ...cached.Response, AverageScore: averageScore } as SentimentAnalysisResponseDto;
 
         return plainToInstance(SentimentAnalysisResponseEnvelopeDto, this.responseHelper.successNest(responseMessages?.AnalysisSuccess, responseCodes?.SentimentAnalysisCompleted, responseWithAvg,
-          ReqId, ReqCode), { excludeExtraneousValues: true }
+          ReqId, ReqCode)
         );
       }
 
@@ -102,7 +102,7 @@ export class SentimentService {
 
       return plainToInstance(SentimentAnalysisResponseEnvelopeDto,
         this.responseHelper.successNest(responseMessages?.AnalysisSuccess, responseCodes.SentimentAnalysisCompleted, responseEntry.Response as SentimentAnalysisResponseDto,
-          ReqId, ReqCode), { excludeExtraneousValues: true }
+          ReqId, ReqCode)
       );
 
     } catch (error: any) {
@@ -139,8 +139,7 @@ export class SentimentService {
         const responseWithAvg: SentimentTextChatResponseDto = { ...matchedEntry.Response, AverageScore: averageScore } as SentimentTextChatResponseDto;
 
         return plainToInstance(SentimentTextChatResponseEnvelopeDto,
-          this.responseHelper.successNest(responseMessages?.AnalysisSuccess, responseCodes?.SentimentAnalysisCompleted, responseWithAvg, ReqId, ReqCode),
-          { excludeExtraneousValues: true }
+          this.responseHelper.successNest(responseMessages?.AnalysisSuccess, responseCodes?.SentimentAnalysisCompleted, responseWithAvg, ReqId, ReqCode)
         );
       }
 
@@ -226,10 +225,8 @@ export class SentimentService {
         }
       }
 
-      if (responses.length > 0) {
-        return plainToInstance(SentimentHistoryResponseEnvelopeDto, this.responseHelper.successNest(responseMessages?.HistorySuccess, responseCodes?.SentimentHistoryCompleted, responses, ReqId, ReqCode),
-          { excludeExtraneousValues: true }
-        );
+      if (responses?.length > 0) {
+        return plainToInstance(SentimentHistoryResponseEnvelopeDto, this.responseHelper.successNest(responseMessages?.HistorySuccess, responseCodes?.SentimentHistoryCompleted, responses, ReqId, ReqCode));
       } else {
         return this.responseHelper.failNest(BadRequestException, responseMessages?.HistoryFailed, responseCodes?.SentimentHistoryFailed, ReqId, ReqCode);
       }
