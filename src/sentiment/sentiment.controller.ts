@@ -14,21 +14,21 @@ export class SentimentController {
   // Sentiment endpoint
   @Get('sentiment')
   @UseGuards(AuthGuard)
-  async getSentiment(@Req() req: CustomJwtRequest, @Query(new ValidationPipe({ transform: true })) query: SentimentAnalysisQueryDto): Promise<any> {
+  async getSentiment(@Req() req: CustomJwtRequest, @Query(new ValidationPipe({ transform: true })) query: SentimentAnalysisQueryDto) {
     return this.sentimentService?.analyzeSentiment(req, query);
   }
 
   // Sentiment Text Chat endpoint
   @Post('sentiment-text-chat')
   @UseGuards(AuthGuard)
-  async postSentimentTextChat(@Req() req: CustomJwtRequest, @Body(new ValidationPipe({ transform: true })) body: SentimentTextChatDto): Promise<any> {
+  async postSentimentTextChat(@Req() req: CustomJwtRequest, @Body(new ValidationPipe({ transform: true })) body: SentimentTextChatDto) {
     return this.sentimentService?.analyzeSentimentTextChat(req, body);
   }
 
   // Sentiment History endpoint
   @Post('sentiment-history')
   @UseGuards(AuthGuard)
-  async postSentimentHistory(@Req() req: CustomJwtRequest, @Body(new ValidationPipe({ transform: true })) body: SentimentHistoryDto): Promise<any> {
+  async postSentimentHistory(@Req() req: CustomJwtRequest, @Body(new ValidationPipe({ transform: true })) body: SentimentHistoryDto) {
     return this.sentimentService?.getSentimentHistory(req, body);
   }
 }
