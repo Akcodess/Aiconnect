@@ -12,6 +12,8 @@ export const commonResponseMessages = {
   HealthOk: 'Health check OK',
   EncryptSuccess: 'Data encrypted successfully',
   EncryptFailed: 'Data encryption failed',
+  ChatCompletionErrorOpenAI: "OpenAI ChatCompletionError",
+  ChatCompletionErrorGoogle: "GoogleCloud ChatCompletionError",
 } as const;
 
 // Other hard-coded values used in responses

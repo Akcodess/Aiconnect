@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { SentimentModule } from './sentiment/sentiment.module';
+import { DispositionModule } from './disposition/disposition.module';
 
 import { SessionModule } from './session/session.module';
 import { ValkeyModule } from './valkey/valkey.module';
@@ -16,6 +17,7 @@ import { CommonModule } from './common/common.module';
     ),
     SentimentModule,
     SessionModule,
+    DispositionModule,
     ValkeyModule,
     CommonModule
   ]

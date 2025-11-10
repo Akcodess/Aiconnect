@@ -1,5 +1,5 @@
 export class PromptHelper {
-  static BuildAutoDispositionPrompt(conversation: string, listDisposition: string): string {
+  static BuildAutoDispositionPrompt(conversation: string, listDisposition: string[]): string {
     return `
 You are an AI assistant. Classify the conversation below into one of the following categories: ${listDisposition}.
 
