@@ -8,8 +8,8 @@ import { TranscribeService } from './transcribe.service';
 export class TranscribeController {
   constructor(private readonly transcribeService: TranscribeService) {}
 
-  @UseGuards(AuthGuard)
   @Get()
+  @UseGuards(AuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
   async GetTranscription(@Req() req: CustomJwtRequest, @Query() query: TranscribeDto) {
     return this.transcribeService.transcribe(req, query);

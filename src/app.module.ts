@@ -8,6 +8,7 @@ import { TranscribeModule } from './transcribe/transcribe.module';
 import { SessionModule } from './session/session.module';
 import { ValkeyModule } from './valkey/valkey.module';
 import { CommonModule } from './common/common.module';
+import { TextToSpeechModule } from './text-to-speech/text-to-speech.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { CommonModule } from './common/common.module';
     LanguageTransModule,
     TranscribeModule,
     ValkeyModule,
-    CommonModule
+    CommonModule,
+    TextToSpeechModule
   ]
 })
 export class AppModule { }
