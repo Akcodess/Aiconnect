@@ -147,7 +147,7 @@ Respond strictly in the following JSON format:
   ${selectedInsights.join(",\n  ")}
 }
 
-IMPORTANT: Return ONLY the JSON. Do not add commentary or explanation outside the JSON. Output must parse correctly in strict JSON parsers.
+IMPORTANT: Return ONLY the JSON. Do not add commentary or explanation outside the JSON or notes such as markdown code fences (e.g., \`\`\`json) or backticks. Output must parse correctly in strict JSON parsers.
 
 Message:
 ${message}`;

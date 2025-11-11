@@ -36,7 +36,7 @@ export class AiUtilService {
 
       const generativeModel = vertex_ai.getGenerativeModel({
         model: process.env.GOOGLECLOUD_MODEL!,
-        generationConfig: { maxOutputTokens: 256 },
+        // generationConfig: { maxOutputTokens: 1000 },
         safetySettings: [
           {
             category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
