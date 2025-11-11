@@ -11,3 +11,12 @@ export type OpenChatInitInput = {
   ContactId?: string;
   XPlatformID: string;
 };
+
+export type OpenChatChatInput = {
+  APIKey?: string;
+  Message: string;
+  AssistantId: string;
+  ThreadId: string;
+  ReqCode: string;
+  XPlatformID: string;
+};

@@ -6,7 +6,7 @@ import { ResponseHelperService } from '../common/helpers/response.helper';
 import { LoggingService } from '../common/utils/logging.util';
 import { ValkeyConfigService } from '../valkey/valkey.service';
 import { OpenChatAIHandlerService } from './ai-handler.service';
-import { OpenChatInitDto, OpenChatInitResponseDto } from './dto/openchat.dto';
+import { OpenChatInitDto, OpenChatInitResponseDto, OpenChatChatDto, OpenChatChatResponseDto } from './dto/openchat.dto';
 import { OpenChatPlatformSID } from './types/openchat.types';
 import { openChatResponseCodes, openChatResponseMessages } from './constants/openchat.constants';
 import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
@@ -76,6 +76,31 @@ export class OpenChatService {
     } catch (error: any) {
       this.logger.error(openChatResponseMessages?.OpenChatInitFailed, error);
       return this.responseHelper.failNest(InternalServerErrorException, openChatResponseMessages?.OpenChatInitFailed, openChatResponseCodes?.InternalServerError, ReqId, ReqCode);
+    }
+  }
+
+  async chat(req: CustomJwtRequest, body: OpenChatChatDto): Promise<any> {
+    const token = req?.headers['sessionid'] as string;
+    const xplatform = req?.XPlatformID as string;
+    const apikey = req?.XPlatformUA?.APISecretKey;
+    const xplatformSID = req?.XPlatformSID;
+
+    const { ReqId, ReqCode, Message, AssistantId, ThreadId } = body;
+
+    this.logger.info(openChatResponseMessages?.OpenChatRequestBody, JSON.stringify(body));
+
+    if (xplatformSID !== OpenChatPlatformSID?.OpenChat) {
+      return this.responseHelper.failNest(BadRequestException, commonResponseMessages?.SidMismatch, commonResponseCodes?.XPlatformSidMismatch, ReqId, ReqCode);
+    }
+
+    try {
+      const responseResult: OpenChatChatResponseDto = await this.openChatHandler?.runOpenChatOpenAI({ Message, APIKey: apikey, AssistantId, ThreadId, ReqCode, XPlatformID: xplatform });
+
+      this.logger.info(openChatResponseMessages?.OpenChatSuccess);
+      return plainToInstance(OpenChatChatResponseDto, this.responseHelper.successNest(openChatResponseMessages?.OpenChatSuccess, openChatResponseCodes?.OpenChatSuccess, responseResult, ReqId, ReqCode));
+    } catch (error: any) {
+      this.logger.error(openChatResponseMessages?.OpenChatFailed, error);
+      return this.responseHelper.failNest(InternalServerErrorException, openChatResponseMessages?.OpenChatFailed, openChatResponseCodes?.InternalServerError, ReqId, ReqCode);
     }
   }
 }
