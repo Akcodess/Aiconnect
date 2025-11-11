@@ -20,3 +20,10 @@ export type OpenChatChatInput = {
   ReqCode: string;
   XPlatformID: string;
 };
+
+export type OpenChatChatResult = {
+  ThreadId: string;
+  AssistantId: string;
+  reply?: any;
+  messages?: Array<{ role: string; content: any }>;
+};

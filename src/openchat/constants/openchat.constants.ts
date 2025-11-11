@@ -14,7 +14,7 @@ export const openChatResponseMessages = {
   OpenChatCreateAssistantError:'OpenChat createAssistantOpenAI error',
   OpenChatCreateThreadError:'OpenChat createThreadOpenAI error',
   OpenChatRequestBody: 'OpenChat Chat Request Body:',
-  OpenChatSuccess: 'OpenChat message processed successfully',
+  OpenChatSuccess: 'OpenChat completed successfully',
   OpenChatFailed: 'OpenChat message processing failed',
   OpenChatHandlerError: 'OpenChat handler error',
 } as const;

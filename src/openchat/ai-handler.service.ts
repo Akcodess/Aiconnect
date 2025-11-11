@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 
 import { LoggingService } from '../common/utils/logging.util';
 import { openChatInstructions, openChatResponseMessages } from './constants/openchat.constants';
-import type { OpenChatChatInput } from './types/openchat.types';
+import type { OpenChatChatInput, OpenChatChatResult } from './types/openchat.types';
 import { RunStatus } from './enums/openchat.enum';
 
 @Injectable()
@@ -36,7 +36,7 @@ export class OpenChatAIHandlerService {
     }
   }
 
-  async runOpenChatOpenAI({ Message, APIKey, AssistantId, ThreadId }: OpenChatChatInput): Promise<any> {
+  async runOpenChatOpenAI({ Message, APIKey, AssistantId, ThreadId }: OpenChatChatInput): Promise<OpenChatChatResult | null> {
     const openai = new OpenAI({ apiKey: APIKey });
 
     try {

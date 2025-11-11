@@ -6,10 +6,11 @@ import { ResponseHelperService } from '../common/helpers/response.helper';
 import { LoggingService } from '../common/utils/logging.util';
 import { ValkeyConfigService } from '../valkey/valkey.service';
 import { OpenChatAIHandlerService } from './ai-handler.service';
-import { OpenChatInitDto, OpenChatInitResponseDto, OpenChatChatDto, OpenChatChatResponseDto } from './dto/openchat.dto';
+import { OpenChatInitDto, OpenChatInitResponseDto, OpenChatChatDto, OpenChatChatResponseDto, OpenChatInitResponseEnvelopeDto, OpenChatChatResponseEnvelopeDto } from './dto/openchat.dto';
 import { OpenChatPlatformSID } from './types/openchat.types';
 import { openChatResponseCodes, openChatResponseMessages } from './constants/openchat.constants';
 import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
+import type { OpenChatChatResult } from './types/openchat.types';
 
 @Injectable()
 export class OpenChatService {
@@ -17,7 +18,7 @@ export class OpenChatService {
     private readonly responseHelper: ResponseHelperService, private readonly logger: LoggingService, private readonly valkey: ValkeyConfigService, private readonly openChatHandler: OpenChatAIHandlerService
   ) { }
 
-  async initialize(req: CustomJwtRequest, body: OpenChatInitDto): Promise<any> {
+  async initialize(req: CustomJwtRequest, body: OpenChatInitDto): Promise<OpenChatInitResponseEnvelopeDto> {
     const token = req?.headers['sessionid'] as string;
     const xplatform = req?.XPlatformID as string;
     const apikey = req?.XPlatformUA?.APISecretKey;
@@ -72,14 +73,23 @@ export class OpenChatService {
       };
 
       this.logger.info(openChatResponseMessages?.OpenChatInitSuccess, JSON.stringify(responseEntry));
-      return plainToInstance(OpenChatInitResponseDto, this.responseHelper.successNest(openChatResponseMessages?.OpenChatInitSuccess, openChatResponseCodes?.OpenChatInitSuccess, responseEntry?.Response, ReqId, ReqCode));
+      return plainToInstance(
+        OpenChatInitResponseEnvelopeDto,
+        this.responseHelper.successNest(
+          openChatResponseMessages?.OpenChatInitSuccess,
+          openChatResponseCodes?.OpenChatInitSuccess,
+          responseEntry?.Response,
+          ReqId,
+          ReqCode
+        )
+      );
     } catch (error: any) {
       this.logger.error(openChatResponseMessages?.OpenChatInitFailed, error);
       return this.responseHelper.failNest(InternalServerErrorException, openChatResponseMessages?.OpenChatInitFailed, openChatResponseCodes?.InternalServerError, ReqId, ReqCode);
     }
   }
 
-  async chat(req: CustomJwtRequest, body: OpenChatChatDto): Promise<any> {
+  async chat(req: CustomJwtRequest, body: OpenChatChatDto): Promise<OpenChatChatResponseEnvelopeDto> {
     const token = req?.headers['sessionid'] as string;
     const xplatform = req?.XPlatformID as string;
     const apikey = req?.XPlatformUA?.APISecretKey;
@@ -94,10 +104,30 @@ export class OpenChatService {
     }
 
     try {
-      const responseResult: OpenChatChatResponseDto = await this.openChatHandler?.runOpenChatOpenAI({ Message, APIKey: apikey, AssistantId, ThreadId, ReqCode, XPlatformID: xplatform });
+      const responseResult: OpenChatChatResult | null = await this.openChatHandler?.runOpenChatOpenAI({ Message, APIKey: apikey, AssistantId, ThreadId, ReqCode, XPlatformID: xplatform });
+
+      if (!responseResult) {
+        throw new Error('OpenChat handler returned null');
+      }
+
+      const payload: OpenChatChatResponseDto = {
+        ThreadId: responseResult.ThreadId,
+        AssistantId: responseResult.AssistantId,
+        reply: responseResult.reply,
+        messages: responseResult.messages,
+      };
 
       this.logger.info(openChatResponseMessages?.OpenChatSuccess);
-      return plainToInstance(OpenChatChatResponseDto, this.responseHelper.successNest(openChatResponseMessages?.OpenChatSuccess, openChatResponseCodes?.OpenChatSuccess, responseResult, ReqId, ReqCode));
+      return plainToInstance(
+        OpenChatChatResponseEnvelopeDto,
+        this.responseHelper.successNest(
+          openChatResponseMessages?.OpenChatSuccess,
+          openChatResponseCodes?.OpenChatSuccess,
+          payload,
+          ReqId,
+          ReqCode
+        )
+      );
     } catch (error: any) {
       this.logger.error(openChatResponseMessages?.OpenChatFailed, error);
       return this.responseHelper.failNest(InternalServerErrorException, openChatResponseMessages?.OpenChatFailed, openChatResponseCodes?.InternalServerError, ReqId, ReqCode);
