@@ -39,8 +39,8 @@ export class InsightService {
 
     try {
       const normalizedAllowedInsights = (AllowedInsights || []).slice().sort().join(',');
-      const cacheKey = this.valkey.createShortKey('insight', ProcessCode!, UXID!, MessageID!, [normalizedAllowedInsights, req?.TenantCode!]);
-      const cachedRaw = await this.valkey.GetInsight(cacheKey);
+      const cacheKey = this.valkey?.createShortKey('insight', ProcessCode!, UXID!, MessageID!, [normalizedAllowedInsights, req?.TenantCode!]);
+      const cachedRaw = await this.valkey?.GetInsight(cacheKey);
       const matchedEntry = cachedRaw ? JSON.parse(cachedRaw) : null;
 
       if (matchedEntry) {
@@ -60,7 +60,7 @@ export class InsightService {
         Response: { Insight: (responseResult ? JSON.parse(responseResult) : {}) } as InsightResponseDto,
       };
 
-      await this.valkey.SetInsight(cacheKey, responseEntry);
+      await this.valkey?.SetInsight(cacheKey, responseEntry);
 
       this.logger.info(insightResponseMessages?.InsightSuccess);
       return plainToInstance(InsightResponseDto, this.responseHelper?.successNest(insightResponseMessages?.InsightSuccess, insightResponseCodes?.InsightSuccess, responseEntry.Response, ReqId, ReqCode));
