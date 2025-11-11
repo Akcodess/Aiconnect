@@ -5,12 +5,12 @@ import { TextToSpeechClient, protos } from '@google-cloud/text-to-speech';
 import { LoggingService } from '../common/utils/logging.util';
 import { TextToSpeechDispatchOptions, TextToSpeechHandlerFn } from './types/tts.types';
 import { PromptHelper } from '../common/helpers/prompt.helper';
-import { OpenAIService } from '../common/utils/openai.util';
+import { AiUtilService } from '../common/utils/ai.util';
 import { ttsResponseMessages } from './constants/text-to-speech.constants';
 
 @Injectable()
 export class TextToSpeechAIHandlerService {
-  constructor(private readonly logger: LoggingService, private readonly openai: OpenAIService) { }
+  constructor(private readonly logger: LoggingService, private readonly ai: AiUtilService) { }
 
   private readonly handlers: Record<string, TextToSpeechHandlerFn> = {
     openai: this.handleOpenAI.bind(this),
@@ -31,7 +31,7 @@ export class TextToSpeechAIHandlerService {
 
       if (LanguageCode) {
         const prompt = PromptHelper?.BuildTextToLanguageTranslate(Message, LanguageCode);
-        normalizedMessage = await this.openai?.chatCompletion(prompt!, creds?.APIKey);
+        normalizedMessage = await this.ai?.chatCompletion(prompt!, creds?.APIKey);
         this.logger.info(ttsResponseMessages?.NormalizedMessage, normalizedMessage);
       }
 

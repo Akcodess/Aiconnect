@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { OpenAIService } from '../common/utils/openai.util';
+import { AiUtilService } from '../common/utils/ai.util';
 import { LoggingService } from '../common/utils/logging.util';
 import { PromptHelper } from '../common/helpers/prompt.helper';
 import { dispositionResponseMessages } from './constants/disposition.constants';
@@ -8,7 +8,7 @@ import { DispositionDispatchOptions, DispositionProviderCredentials } from './ty
 
 @Injectable()
 export class DispositionAIHandlerService {
-  constructor(private readonly logger: LoggingService, private readonly openai: OpenAIService) {}
+  constructor(private readonly logger: LoggingService, private readonly ai: AiUtilService) {}
 
   private readonly handlers: Record<string, (prompt: string, creds: DispositionProviderCredentials) => Promise<string | null>> = {
     openai: this.handleOpenAI.bind(this),
@@ -25,7 +25,7 @@ export class DispositionAIHandlerService {
 
   private async handleOpenAI(prompt: string, creds: DispositionProviderCredentials): Promise<string | null> {
     try {
-      const response = await this.openai?.chatCompletion(prompt, creds?.APIKey);
+      const response = await this.ai?.chatCompletion(prompt, creds?.APIKey);
       return response;
     } catch (err: unknown) {
       this.logger.error(dispositionResponseMessages?.DispositionFailed, err instanceof Error ? err.message : String(err));
@@ -36,7 +36,7 @@ export class DispositionAIHandlerService {
   // Placeholder for Google Cloud implementation; returns null to indicate not supported yet
   private async handleGoogleCloud(prompt: string, creds: DispositionProviderCredentials): Promise<string | null> {
     try {
-      const response = await this.openai?.CallGoogleCloudChat(prompt, creds?.APIKey, creds?.ClientEmail, creds?.ProjectId);
+      const response = await this.ai?.googleCloudChat(prompt, creds?.APIKey, creds?.ClientEmail, creds?.ProjectId);
       return response?.replace(/\n/g, '') || null;
     } catch (err: unknown) {
       this.logger.error(dispositionResponseMessages?.DispositionFailed, err instanceof Error ? err.message : String(err));

@@ -3,8 +3,9 @@ import { TextToSpeechService } from './text-to-speech.service';
 import { TextToSpeechDto } from './dto/text-to-speech.dto';
 import type { CustomJwtRequest } from '../common/types/request.types';
 import { AuthGuard } from '../common/guards/session.guard';
+import { apiVersion } from '../common/constants/version.constants';
 
-@Controller({ path: 'synthesize', version: '1' })
+@Controller({ path: 'synthesize', version: apiVersion })
 export class TextToSpeechController {
   constructor(private readonly service: TextToSpeechService) { }
 
@@ -12,6 +13,6 @@ export class TextToSpeechController {
   @UseGuards(AuthGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   async GetSpeech(@Req() req: CustomJwtRequest, @Body() body: TextToSpeechDto) {
-    return this.service.synthesize(req, body);
+    return this.service?.synthesize(req, body);
   }
 }

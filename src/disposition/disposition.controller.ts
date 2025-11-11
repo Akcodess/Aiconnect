@@ -3,8 +3,9 @@ import { AuthGuard } from '../common/guards/session.guard';
 import type { CustomJwtRequest } from '../common/types/request.types';
 import { DispositionService } from './disposition.service';
 import { AutoDispositionDto } from './dto/auto-disposition.dto';
+import { apiVersion } from '../common/constants/version.constants';
 
-@Controller({ path: 'auto-disposition', version: '1' })
+@Controller({ path: 'auto-disposition', version: apiVersion })
 export class DispositionController {
   constructor(private readonly dispositionService: DispositionService) { }
 

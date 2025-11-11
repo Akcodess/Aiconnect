@@ -3,8 +3,9 @@ import { AuthGuard } from '../common/guards/session.guard';
 import type { CustomJwtRequest } from '../common/types/request.types';
 import { LanguageTransService } from './language-trans.service';
 import { TranslationDto } from './dto/translation.dto';
+import { apiVersion } from '../common/constants/version.constants';
 
-@Controller({ path: 'translate', version: '1' })
+@Controller({ path: 'translate', version: apiVersion })
 export class LanguageTransController {
   constructor(private readonly service: LanguageTransService) { }
 

@@ -5,12 +5,12 @@ import { AIHandlerParams, AIHandlerParamsSentimenrtTextChat, TextChatSpeakerSent
 import { LoggingService } from '../common/utils/logging.util';
 import { SentimentUtilityService } from './utils/sentiment.util';
 import { PromptHelper } from '../common/helpers/prompt.helper';
-import { OpenAIService } from '../common/utils/openai.util';
+import { AiUtilService } from '../common/utils/ai.util';
 import { googleCloudMesssages, openaiMessages } from './constants/sentiment.constants';
 
 @Injectable()
 export class AIHandlerService {
-  constructor(private logger: LoggingService, private sentimentUtil: SentimentUtilityService, private openai: OpenAIService) { }
+  constructor(private logger: LoggingService, private sentimentUtil: SentimentUtilityService, private ai: AiUtilService) { }
 
   // Dispatcher aligned with requested platforms
   private readonly sentimentHandlers: Record<string, (params: AIHandlerParams) => Promise<number | Record<number, { Category: string; Score: number }> | null>> = {
@@ -47,7 +47,7 @@ export class AIHandlerService {
     try {
       const prompt = SentenceScore === 'T' ? PromptHelper.BuildSentanceSentimentPrompt(Message) : PromptHelper.BuildSentimentPrompt(Message);
 
-      const raw = await this.openai.chatCompletion(prompt, APIKey);
+      const raw = await this.ai.chatCompletion(prompt, APIKey);
       if (!raw) return null;
 
       if (SentenceScore === 'T') {
@@ -99,7 +99,7 @@ export class AIHandlerService {
   private async handleTextChatOpenAI({ Message, APIKey }: AIHandlerParamsSentimenrtTextChat): Promise<Record<string, TextChatSpeakerSentiment> | null> {
     try {
       const prompt = PromptHelper?.BuildSentimentTextChatPrompt(this.normalizeTextChatMessage(Message));
-      const raw = await this.openai?.chatCompletion(prompt, APIKey);
+      const raw = await this.ai?.chatCompletion(prompt, APIKey);
       if (!raw) return null;
       const parsed = JSON.parse(raw) as Record<string, TextChatSpeakerSentiment>;
       return parsed;

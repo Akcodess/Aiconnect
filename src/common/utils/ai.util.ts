@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
 
 import { VertexAI, HarmCategory, HarmBlockThreshold } from '@google-cloud/vertexai';
-import { LoggingService } from '../../common/utils/logging.util';
+import { LoggingService } from './logging.util';
 import { commonResponseMessages } from '../constants/common.constants';
 
 @Injectable()
-export class OpenAIService {
+export class AiUtilService {
   constructor(private readonly logger: LoggingService) { }
 
   async chatCompletion(prompt: string, apiKey?: string): Promise<string | null> {
@@ -26,7 +26,7 @@ export class OpenAIService {
   }
 
   // Google Cloud Vertex AI text generation
-  async CallGoogleCloudChat(prompt: string, APIKey?: string, ClientEmail?: string, ProjectId?: string): Promise<string | null> {
+  async googleCloudChat(prompt: string, APIKey?: string, ClientEmail?: string, ProjectId?: string): Promise<string | null> {
     try {
       const vertex_ai = new VertexAI({
         project: ProjectId!,

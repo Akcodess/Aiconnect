@@ -6,8 +6,9 @@ import { SentimentAnalysisQueryDto } from './dto/sentiment.dto';
 import { SentimentTextChatDto } from './dto/sentiment-text-chat.dto';
 import { SentimentHistoryDto } from './dto/sentiment-history.dto';
 import type { CustomJwtRequest } from '../common/types/request.types';
+import { apiVersion } from '../common/constants/version.constants';
 
-@Controller({ path: '', version: '1' })
+@Controller({ path: '', version: apiVersion })
 export class SentimentController {
   constructor(private readonly sentimentService: SentimentService) { }
 

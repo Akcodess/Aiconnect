@@ -9,7 +9,7 @@ import { ResponseHelperService } from '../common/helpers/response.helper';
 import { LoggingService } from '../common/utils/logging.util';
 import { TokenUtilityService } from '../common/utils/token.util';
 import { SentimentUtilityService } from './utils/sentiment.util';
-import { OpenAIService } from '../common/utils/openai.util';
+import { AiUtilService } from '../common/utils/ai.util';
 import { ValkeyModule } from '../valkey/valkey.module';
 // Removed CommonModule import to localize sentiment-specific utilities
 
@@ -24,7 +24,7 @@ import { ValkeyModule } from '../valkey/valkey.module';
     LoggingService,
     TokenUtilityService,
     SentimentUtilityService,
-    OpenAIService,
+    AiUtilService,
   ],
   exports: [SentimentService]
 })

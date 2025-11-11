@@ -27,7 +27,7 @@ async function bootstrap() {
 
   // Set global prefix and enable URI versioning so routes are served under /aiconnect/v1 and /aiconnect/v2
   app.setGlobalPrefix(process.env.AICONNECT_V!);
-  app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
+  app.enableVersioning({ type: VersioningType.URI, defaultVersion: process.env.API_VERSION ?? '1' });
 
   // Initialize the Nest app without binding a single port
   await app.init();

@@ -8,7 +8,7 @@ import { DispositionService } from './disposition.service';
 import { DispositionAIHandlerService } from './ai-handler.service';
 import { ResponseHelperService } from '../common/helpers/response.helper';
 import { LoggingService } from '../common/utils/logging.util';
-import { OpenAIService } from '../common/utils/openai.util';
+import { AiUtilService } from '../common/utils/ai.util';
 import { TokenUtilityService } from '../common/utils/token.util';
 import { AuthGuard } from '../common/guards/session.guard';
 
@@ -20,7 +20,7 @@ import { AuthGuard } from '../common/guards/session.guard';
     DispositionAIHandlerService,
     ResponseHelperService,
     LoggingService,
-    OpenAIService,
+    AiUtilService,
     TokenUtilityService,
     AuthGuard,
   ],

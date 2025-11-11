@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Translate } from '@google-cloud/translate/build/src/v2';
 
-import { OpenAIService } from '../common/utils/openai.util';
+import { AiUtilService } from '../common/utils/ai.util';
 import { LoggingService } from '../common/utils/logging.util';
 import { PromptHelper } from '../common/helpers/prompt.helper';
 import { languageTransResponseMessages } from './constants/language-trans.constants';
@@ -9,7 +9,7 @@ import { TranslationDispatchOptions, GoogleCloudCredentials, TranslationHandlerF
 
 @Injectable()
 export class LanguageTransAIHandlerService {
-  constructor(private readonly logger: LoggingService, private readonly openai: OpenAIService) { }
+  constructor(private readonly logger: LoggingService, private readonly ai: AiUtilService) { }
 
   private readonly handlers: Record<string, TranslationHandlerFn> = {
     openai: this.handleOpenAI.bind(this),
@@ -26,7 +26,7 @@ export class LanguageTransAIHandlerService {
 
   private async handleOpenAI(prompt: string, creds: GoogleCloudCredentials): Promise<string | null> {
     try {
-      const response = await this.openai?.chatCompletion(prompt, creds?.APIKey);
+      const response = await this.ai?.chatCompletion(prompt, creds?.APIKey);
       return response;
     } catch (err: unknown) {
       this.logger.error(languageTransResponseMessages?.TranslationFailed, err instanceof Error ? err.message : String(err));

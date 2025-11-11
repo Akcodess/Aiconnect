@@ -3,8 +3,9 @@ import { AuthGuard } from '../common/guards/session.guard';
 import type { CustomJwtRequest } from '../common/types/request.types';
 import { TranscribeDto } from './dto/transcribe.dto';
 import { TranscribeService } from './transcribe.service';
+import { apiVersion } from '../common/constants/version.constants';
 
-@Controller({ path: 'transcribe', version: '1' })
+@Controller({ path: 'transcribe', version: apiVersion })
 export class TranscribeController {
   constructor(private readonly transcribeService: TranscribeService) {}
 
@@ -12,6 +13,6 @@ export class TranscribeController {
   @UseGuards(AuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
   async GetTranscription(@Req() req: CustomJwtRequest, @Query() query: TranscribeDto) {
-    return this.transcribeService.transcribe(req, query);
+    return this.transcribeService?.transcribe(req, query);
   }
 }
