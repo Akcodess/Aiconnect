@@ -11,6 +11,7 @@ import { CommonModule } from './common/common.module';
 import { TextToSpeechModule } from './text-to-speech/text-to-speech.module';
 import { OpenChatModule } from './openchat/openchat.module';
 import { InsightModule } from './insight/insight.module';
+import { DBModule } from './db/db.module';
 
 @Module({
   imports: [
@@ -29,7 +30,8 @@ import { InsightModule } from './insight/insight.module';
     CommonModule,
     TextToSpeechModule,
     OpenChatModule,
-    InsightModule
+    InsightModule,
+    DBModule,
   ]
 })
 export class AppModule { }

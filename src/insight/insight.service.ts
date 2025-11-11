@@ -46,13 +46,8 @@ export class InsightService {
       if (matchedEntry) {
         this.logger.info(insightResponseMessages?.CachedResult);
         return plainToInstance(
-          InsightResponseEnvelopeDto,
-          this.responseHelper?.successNest(
-            insightResponseMessages?.InsightSuccess,
-            insightResponseCodes?.InsightSuccess,
-            matchedEntry.Response as InsightResponseDto,
-            ReqId,
-            ReqCode
+          InsightResponseEnvelopeDto, this.responseHelper?.successNest(insightResponseMessages?.InsightSuccess, insightResponseCodes?.InsightSuccess, matchedEntry.Response as InsightResponseDto,
+            ReqId, ReqCode
           )
         );
       }
@@ -73,14 +68,7 @@ export class InsightService {
 
       this.logger.info(insightResponseMessages?.InsightSuccess);
       return plainToInstance(
-        InsightResponseEnvelopeDto,
-        this.responseHelper?.successNest(
-          insightResponseMessages?.InsightSuccess,
-          insightResponseCodes?.InsightSuccess,
-          responseEntry.Response,
-          ReqId,
-          ReqCode
-        )
+        InsightResponseEnvelopeDto, this.responseHelper?.successNest(insightResponseMessages?.InsightSuccess, insightResponseCodes?.InsightSuccess, responseEntry.Response, ReqId, ReqCode)
       );
     } catch (error: any) {
       this.logger.error(insightResponseMessages?.InsightFailed, error);

@@ -75,13 +75,7 @@ export class OpenChatService {
       this.logger.info(openChatResponseMessages?.OpenChatInitSuccess, JSON.stringify(responseEntry));
       return plainToInstance(
         OpenChatInitResponseEnvelopeDto,
-        this.responseHelper.successNest(
-          openChatResponseMessages?.OpenChatInitSuccess,
-          openChatResponseCodes?.OpenChatInitSuccess,
-          responseEntry?.Response,
-          ReqId,
-          ReqCode
-        )
+        this.responseHelper.successNest(openChatResponseMessages?.OpenChatInitSuccess, openChatResponseCodes?.OpenChatInitSuccess, responseEntry?.Response, ReqId, ReqCode)
       );
     } catch (error: any) {
       this.logger.error(openChatResponseMessages?.OpenChatInitFailed, error);
@@ -120,12 +114,7 @@ export class OpenChatService {
       this.logger.info(openChatResponseMessages?.OpenChatSuccess);
       return plainToInstance(
         OpenChatChatResponseEnvelopeDto,
-        this.responseHelper.successNest(
-          openChatResponseMessages?.OpenChatSuccess,
-          openChatResponseCodes?.OpenChatSuccess,
-          payload,
-          ReqId,
-          ReqCode
+        this.responseHelper.successNest(openChatResponseMessages?.OpenChatSuccess, openChatResponseCodes?.OpenChatSuccess, payload, ReqId, ReqCode
         )
       );
     } catch (error: any) {
