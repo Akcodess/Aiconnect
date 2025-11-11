@@ -6,7 +6,7 @@ import { ResponseHelperService } from '../common/helpers/response.helper';
 import { LoggingService } from '../common/utils/logging.util';
 import { ValkeyConfigService } from '../valkey/valkey.service';
 import { InsightAIHandlerService } from './ai-handler.service';
-import { InsightDto, InsightResponseDto } from './dto/insight.dto';
+import { InsightDto, InsightResponseDto, InsightResponseEnvelopeDto } from './dto/insight.dto';
 import { InsightPlatformSID } from './types/insight.types';
 import { insightResponseCodes, insightResponseMessages } from './constants/insight.constants';
 import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
@@ -21,7 +21,7 @@ export class InsightService {
     private readonly aiHandler: InsightAIHandlerService,
   ) { }
 
-  async generate(req: CustomJwtRequest, body: InsightDto): Promise<any> {
+  async generate(req: CustomJwtRequest, body: InsightDto): Promise<InsightResponseEnvelopeDto> {
     const token = req?.headers['sessionid'] as string;
     const xplatform = req?.XPlatformID as string;
     const apikey = req?.XPlatformUA?.APISecretKey;
@@ -45,7 +45,16 @@ export class InsightService {
 
       if (matchedEntry) {
         this.logger.info(insightResponseMessages?.CachedResult);
-        return this.responseHelper?.successNest(insightResponseMessages?.InsightSuccess, insightResponseCodes?.InsightSuccess, matchedEntry.Response as InsightResponseDto, ReqId, ReqCode);
+        return plainToInstance(
+          InsightResponseEnvelopeDto,
+          this.responseHelper?.successNest(
+            insightResponseMessages?.InsightSuccess,
+            insightResponseCodes?.InsightSuccess,
+            matchedEntry.Response as InsightResponseDto,
+            ReqId,
+            ReqCode
+          )
+        );
       }
 
       this.logger.info(insightResponseMessages?.InsightStarted, xplatform);
@@ -63,7 +72,16 @@ export class InsightService {
       await this.valkey?.SetInsight(cacheKey, responseEntry);
 
       this.logger.info(insightResponseMessages?.InsightSuccess);
-      return plainToInstance(InsightResponseDto, this.responseHelper?.successNest(insightResponseMessages?.InsightSuccess, insightResponseCodes?.InsightSuccess, responseEntry.Response, ReqId, ReqCode));
+      return plainToInstance(
+        InsightResponseEnvelopeDto,
+        this.responseHelper?.successNest(
+          insightResponseMessages?.InsightSuccess,
+          insightResponseCodes?.InsightSuccess,
+          responseEntry.Response,
+          ReqId,
+          ReqCode
+        )
+      );
     } catch (error: any) {
       this.logger.error(insightResponseMessages?.InsightFailed, error);
       return this.responseHelper.failNest(InternalServerErrorException, insightResponseMessages?.InsightFailed, insightResponseCodes?.InternalServerError, ReqId, ReqCode);
