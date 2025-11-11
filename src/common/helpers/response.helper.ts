@@ -8,8 +8,6 @@ export class ResponseHelperService {
   // Nest-friendly success: returns structured object instead of writing to Express Response
   successNest(message: string, code: string, data?: any, reqId?: string, reqCode?: string) {
     const timeStamp = moment().format('YYYY-MM-DD HH:mm:ss');
-    const token = data?.Token ?? data?.SessionId ?? '';
-    const expiresIn = data?.ExpiresIn ?? '';
 
     const response = {
       Message: message,
@@ -18,8 +16,6 @@ export class ResponseHelperService {
       EvType: EvType.Success,
       ReqId: reqId ?? '',
       ReqCode: reqCode ?? '',
-      ...(expiresIn !== '' && { ExpiresIn: expiresIn }),
-      ...(token !== '' && { SessionId: token }),
       // Always include Data when provided (even if empty object or primitive)
       ...((data !== undefined && data !== null) && { Data: data }),
     };
@@ -29,7 +25,7 @@ export class ResponseHelperService {
   // Nest-friendly failure: throws given Nest exception with common body format
   failNest(ExceptionCtor: new (response?: any) => Error, message: string, code: string, reqId?: string, reqCode?: string): never {
     const timeStamp = moment().format('YYYY-MM-DD HH:mm:ss');
-    
+
     const responseBody = {
       Message: message,
       TimeStamp: timeStamp,

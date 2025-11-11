@@ -67,14 +67,6 @@ export class SessionInitResponseDto {
   @Expose()
   @Transform(({ value }) => (value != null ? String(value).trim() : ''))
   ReqCode?: string;
-
-  @Expose()
-  @Transform(({ value }) => (value != null ? Number(value) : 0))
-  ExpiresIn?: number;
-
-  @Expose()
-  @Transform(({ value }) => (value != null ? String(value) : ''))
-  SessionId?: string;
 }
 
 export class SessionEndResponseDto {

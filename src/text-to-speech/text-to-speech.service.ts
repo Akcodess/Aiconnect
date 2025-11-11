@@ -50,7 +50,7 @@ export class TextToSpeechService {
 
       this.logger.info(ttsResponseMessages?.TextToSpeechStarted, xplatform);
 
-      const result = await this?.aiHandler?.dispatch({ Message, VoiceModel, LanguageCode, SpeakingRate, platform: xplatform, creds: { APIKey: apikey, ClientEmail: clientEmail, ProjectId: projectId } });
+      const result: string | Uint8Array | null = await this?.aiHandler?.dispatch({ Message, VoiceModel, LanguageCode, SpeakingRate, platform: xplatform, creds: { APIKey: apikey, ClientEmail: clientEmail, ProjectId: projectId } });
       const filePath = await bufferAudio(result);
 
       const responseEntry = { Token: token, TenantCode: req?.TenantCode!, ProcessCode, UXID, MessageID, LanguageCode, Response: { Audio: filePath } as TextToSpeechResponseDto };

@@ -14,7 +14,7 @@ export class TextToSpeechAIHandlerService {
 
   private readonly handlers: Record<string, TextToSpeechHandlerFn> = {
     openai: this.handleOpenAI.bind(this),
-    // googlecloud: this.handleGoogleCloud.bind(this),
+    googlecloud: this.handleGoogleCloud.bind(this),
   };
 
   async dispatch(options: TextToSpeechDispatchOptions): Promise<string | Uint8Array | null> {
@@ -23,7 +23,7 @@ export class TextToSpeechAIHandlerService {
     return handler(options) ?? null;
   }
 
-  private async handleOpenAI(options: TextToSpeechDispatchOptions): Promise<Uint8Array | null> {
+  private async handleOpenAI(options: TextToSpeechDispatchOptions): Promise<string | Uint8Array | null> {
     const { Message, VoiceModel, LanguageCode, SpeakingRate, creds } = options;
     try {
       const openai = new OpenAI({ apiKey: creds?.APIKey });
@@ -52,29 +52,29 @@ export class TextToSpeechAIHandlerService {
     }
   }
 
-  // private async handleGoogleCloud(options: TextToSpeechDispatchOptions): Promise<Uint8Array | null> {
-  //   const { Message, VoiceModel, LanguageCode, SpeakingRate, creds } = options;
-  //   try {
-  //     const client = new textToSpeech.TextToSpeechClient({
-  //       credentials: { private_key: APIKey, client_email: ClientEmail },
-  //       projectId: ProjectId,
-  //     });
+  private async handleGoogleCloud(options: TextToSpeechDispatchOptions): Promise<string | Uint8Array | null> {
+    const { Message, VoiceModel, LanguageCode, SpeakingRate, creds } = options;
+    try {
+      const client = new TextToSpeechClient({
+        credentials: { private_key: creds?.APIKey, client_email: creds?.ClientEmail },
+        projectId: creds?.ProjectId,
+      });
 
-  //     let normalizedMessage: string | null = Message!;
+      let normalizedMessage: string | null = Message!;
 
-  //     if (LanguageCode) {
-  //       const prompt = HelperService?.promptHelper?.BuildTextToLanguageTranslate(Message!, LanguageCode!);
-  //       normalizedMessage = await this.CallGoogleCloudChat(prompt!, APIKey, ClientEmail, ProjectId);
-  //       logger.info("Normalized Message:", normalizedMessage);
-  //     }
+      if (LanguageCode) {
+        const prompt = PromptHelper?.BuildTextToLanguageTranslate(Message!, LanguageCode!);
+        normalizedMessage = await this.ai?.googleCloudChat(prompt!, creds?.APIKey, creds?.ClientEmail, creds?.ProjectId);
+        this.logger.info(ttsResponseMessages?.NormalizedMessage, normalizedMessage);
+      }
 
-  //     const validGenders = process.env.GOOGLECLOUD_SSML_GENDERS!;
-  //     const gender = validGenders.includes(VoiceModel as any) ? VoiceModel : 'NEUTRAL';
-  //     const [response] = await client.synthesizeSpeech({ input: { text: normalizedMessage }, voice: { languageCode: LanguageCode || 'en-US', ssmlGender: gender as any }, audioConfig: { audioEncoding: (process.env.AUDIO_EXT as any)?.toUpperCase(), speakingRate: parseFloat(SpeakingRate || '1.0') } });
-  //     return response.audioContent || null;
-  //   } catch (err: any) {
-  //     UtilService?.logger.error(EnumService?.googleCloudErrors?.HandlerError, err.message);
-  //     return null;
-  //   }
-  // }
+      const validGenders = process.env.GOOGLECLOUD_SSML_GENDERS!;
+      const gender = validGenders.includes(VoiceModel as any) ? VoiceModel : 'NEUTRAL';
+      const [response] = await client.synthesizeSpeech({ input: { text: normalizedMessage }, voice: { languageCode: LanguageCode || 'en-US', ssmlGender: gender as any }, audioConfig: { audioEncoding: (process.env.AUDIO_EXT as any)?.toUpperCase(), speakingRate: parseFloat(SpeakingRate || '1.0') } });
+      return response.audioContent || null;
+    } catch (err: any) {
+      this.logger.error(ttsResponseMessages?.GoogleCloudHandlerError, err.message);
+      return null;
+    }
+  }
 }

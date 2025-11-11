@@ -63,7 +63,7 @@ export class SessionService {
 
       // Wrap with class-transformer to apply @Expose/@Transform on the DTO
       return plainToInstance(
-        SessionInitResponseDto, this.responseHelper.successNest(sessionResponseMessages.SessionInitSuccess, sessionResponseCodes.SessionInitSuccess, { Token: token, ExpiresIn: expTime },
+        SessionInitResponseDto, this.responseHelper.successNest(sessionResponseMessages.SessionInitSuccess, sessionResponseCodes.SessionInitSuccess, { SessionId: token, ExpiresIn: expTime },
           ReqId, ReqCode)
       );
     } catch (error: any) {

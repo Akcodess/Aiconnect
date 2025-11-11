@@ -5,7 +5,8 @@ export const ttsResponseMessages = {
   CachedResult: 'Text-to-speech cached result returned',
   InternalError: 'Internal server error occurred',
   NormalizedMessage: 'Normalized Message',
-  OpenaiHandlerError: 'OpenAI TTS handler error'
+  OpenaiHandlerError: 'OpenAI TTS handler error',
+  GoogleCloudHandlerError: 'Google Cloud TTS handler error',
 };
 
 export const ttsResponseCodes = {
