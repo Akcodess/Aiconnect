@@ -10,9 +10,10 @@ import { KbAIHandlerService } from './ai-handler.service';
 import { KbPlatformSID } from './types/kb.types';
 import { kbResponseMessages, kbResponseCodes } from './constants/kb.constants';
 import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
-import type { KbInitResult } from './types/kb.types';
-import { KbInitResponseEnvelopeDto } from './dto/kb.dto';
-import type { KbInitDto } from './dto/kb.dto';
+import type { KbInitResult, KbStoreSummary } from './types/kb.types';
+import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto } from './dto/kb.dto';
+import type { KbInitDto, KbStoreListDto } from './dto/kb.dto';
+import type { DataSource } from 'typeorm';
 
 @Injectable()
 export class KbService {
@@ -63,17 +64,21 @@ export class KbService {
         // Dispatch to platform-specific KB init via handler
         const initResult = await this.kbHandler.dispatch({ platform: xplatform, creds: { APIKey: apikey } });
 
-        const ds: any = this.tenantDb?.getTenantDataSource(tenantCode);
+        const ds: DataSource | null = this.tenantDb.getTenantDataSource(tenantCode);
         const tenantInfo = this.tenantDb?.getTenantInfo(tenantCode);
 
-        const repo = ds?.getRepository(KBStore);
-        const toSave = repo?.create({
+        if (!ds) {
+          throw new Error('Tenant database is not available');
+        }
+
+        const repo = ds.getRepository(KBStore);
+        const toSave = repo.create({
           KBUID: initResult?.KBUID,
           XPlatformID: initResult?.XPlatformID,
           XPRef: initResult?.XPRef,
           CreatedBy: Number(tenantInfo?.Id)
         });
-        await repo?.save(toSave);
+        await repo.save(toSave);
 
         return initResult;
       },
@@ -81,6 +86,33 @@ export class KbService {
       kbResponseMessages.kbInitSuccess,
       kbResponseCodes.kbInitSuccess,
       kbResponseMessages.kbInitFailed,
+      commonResponseCodes.InternalServerError,
+      dto,
+    );
+  }
+
+  async getKb(req: CustomJwtRequest, dto: KbStoreListDto) {
+    return this.execute<KbStoreSummary[]>(
+      req,
+      async ({ tenantCode }) => {
+        const ds: DataSource | null = this.tenantDb.getTenantDataSource(tenantCode);
+
+        const repo = ds?.getRepository(KBStore);
+        const rows: KBStore[] | undefined = await repo?.find();
+        const result: KbStoreSummary[] = (rows || []).map((r) => ({
+          Id: r.Id,
+          KBUID: r.KBUID,
+          XPlatformID: r.XPlatformID,
+          XPRef: r.XPRef,
+          CreatedOn: r.CreatedOn,
+          EditedOn: r.EditedOn,
+        }));
+        return result;
+      },
+      KbStoreListResponseEnvelopeDto,
+      kbResponseMessages.storeListSuccess,
+      kbResponseCodes.storeListSuccess,
+      kbResponseMessages.storeListFailed,
       commonResponseCodes.InternalServerError,
       dto,
     );

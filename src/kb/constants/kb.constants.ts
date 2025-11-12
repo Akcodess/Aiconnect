@@ -8,8 +8,8 @@ export const kbResponseMessages = {
   // Store listing
   storeListRequestBody: 'KB store list request received',
   storeListStarted: 'KB store list started',
-  storeListSuccess: 'KB store list success',
-  storeListFailed: 'KB store list failed',
+  storeListSuccess: 'KB fetched successfully',
+  storeListFailed: 'KB fetch failed',
   // File listing
   fileListRequestBody: 'KB file list request received',
   fileListStarted: 'KB file list started',
@@ -19,7 +19,7 @@ export const kbResponseMessages = {
 
 export const kbResponseCodes = {
   kbInitSuccess: 'KBInitSuccess',
-  storeListSuccess: 'KBStoreListSuccess',
+  storeListSuccess: 'GetKbSuccess',
   fileListSuccess: 'KBFileListSuccess',
   internalServerError: 'InternalServerError',
 } as const;
