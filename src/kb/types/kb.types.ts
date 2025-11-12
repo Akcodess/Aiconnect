@@ -23,6 +23,7 @@ export interface KbInitDispatchOptions {
 // Interface for per-platform KB operations implemented by handler service
 export interface KbHandlerOps {
   KbInit: (platform: string, creds: KbHandlerCreds) => Promise<KbInitResult | null>;
+  KbFileUpload?: (platform: string, creds: KbHandlerCreds, input: KbFileUploadInput) => Promise<KbFileUploadResult | null>;
   KbFileDelete?: (platform: string, creds: KbHandlerCreds, fileId: string) => Promise<boolean>;
   VectorStoreDelete?: (platform: string, creds: KbHandlerCreds, vectorStoreId: string) => Promise<boolean>;
   AssistantDelete?: (platform: string, creds: KbHandlerCreds, assistantId: string) => Promise<boolean>;
@@ -49,4 +50,24 @@ export interface KbFileSummary {
 
 export interface KbDeleteResult {
   KBUID: string;
+}
+
+// Input for KB file upload
+export interface KbFileUploadInput {
+  KBUID: string;
+  FileName: string;
+  FileURL: string;
+}
+
+// Result for KB file upload
+export interface KbFileUploadResult {
+  KBUID: string;
+  FileName: string;
+  FileURL: string;
+  XPRef: Record<string, any>;
+}
+
+// Params for OpenAI KB file upload (includes APIKey)
+export interface KbFileUploadOpenAIParams extends KbFileUploadInput {
+  APIKey: string;
 }

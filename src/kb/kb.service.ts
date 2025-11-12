@@ -14,8 +14,9 @@ import { KbPlatformSID } from './types/kb.types';
 import { kbResponseMessages, kbResponseCodes } from './constants/kb.constants';
 import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
 import type { KbInitResult, KbStoreSummary, KbDeleteResult } from './types/kb.types';
-import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto } from './dto/kb.dto';
-import type { KbInitDto, KbStoreListDto, KbDeleteDto } from './dto/kb.dto';
+import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto } from './dto/kb.dto';
+import type { KbInitDto, KbStoreListDto, KbDeleteDto, KbFileUploadDto } from './dto/kb.dto';
+import type { KbFileUploadResult } from './types/kb.types';
 
 @Injectable()
 export class KbService {
@@ -193,6 +194,41 @@ export class KbService {
       kbResponseMessages.deleteKbSuccess,
       kbResponseCodes.deleteKbSuccess,
       kbResponseMessages.deleteKbFailed,
+      commonResponseCodes.InternalServerError,
+      dto,
+    );
+  }
+
+  async uploadFile(req: CustomJwtRequest, dto: KbFileUploadDto) {
+    return this.execute<KbFileUploadResult | null>(
+      req,
+      async ({ xplatform, apikey, tenantCode }) => {
+        const { KBUID, FileName, FileURL } = dto;
+
+        // Call per-platform KB file upload
+        const ops = this.kbHandler?.getOps(xplatform);
+        const responseResult = await ops?.KbFileUpload?.(xplatform, { APIKey: apikey }, { KBUID, FileName, FileURL }) ?? null;
+
+
+        const ds: DataSource | null = this.tenantDb.getTenantDataSource(tenantCode);
+        const tenantInfo = this.tenantDb?.getTenantInfo(tenantCode);
+
+        const repo = ds?.getRepository(KBFile);
+        const toSave = repo?.create({
+          KBUID: responseResult?.KBUID,
+          FileName: responseResult?.FileName,
+          FileURL: responseResult?.FileURL,
+          XPRef: responseResult?.XPRef,
+          CreatedBy: Number(tenantInfo?.Id),
+        });
+        await repo?.save(toSave!);
+
+        return responseResult;
+      },
+      KbFileUploadResponseEnvelopeDto,
+      kbResponseMessages.fileUploadSuccess,
+      kbResponseCodes.fileUploadSuccess,
+      kbResponseMessages.fileUploadFailed,
       commonResponseCodes.InternalServerError,
       dto,
     );

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { AiUtilService } from '../common/utils/ai.util';
 import { LoggingService } from '../common/utils/logging.util';
-import type { KbInitResult, KbHandlerCreds, KbHandlerOps } from './types/kb.types';
+import type { KbInitResult, KbHandlerCreds, KbHandlerOps, KbFileUploadInput, KbFileUploadResult } from './types/kb.types';
 import { kbResponseMessages } from './constants/kb.constants';
 
 @Injectable()
@@ -12,6 +12,7 @@ export class KbAIHandlerService {
   private readonly handlers: Record<string, KbHandlerOps> = {
     openai: {
       KbInit: this.handleOpenAI.bind(this),
+      KbFileUpload: this.handleOpenAIFileUpload.bind(this),
       KbFileDelete: this.handleOpenAIFileDelete.bind(this),
       VectorStoreDelete: this.handleOpenAIVectorDelete.bind(this),
       AssistantDelete: this.handleOpenAIAssistantDelete.bind(this),
@@ -62,6 +63,16 @@ export class KbAIHandlerService {
     } catch (err: unknown) {
       this.logger.warn(kbResponseMessages.assistantDeleteFailed, err instanceof Error ? err.message : String(err));
       return false;
+    }
+  }
+
+  private async handleOpenAIFileUpload(_: string, creds: KbHandlerCreds, input: KbFileUploadInput): Promise<KbFileUploadResult | null> {
+    try {
+      const result = await this.aiUtil?.kbFileUploadOpenAI({ APIKey: creds?.APIKey!, ...input });
+      return result as KbFileUploadResult;
+    } catch (err: unknown) {
+      this.logger.error(kbResponseMessages.fileUploadFailed, err instanceof Error ? err.message : String(err));
+      return null;
     }
   }
 }

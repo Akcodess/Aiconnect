@@ -1,11 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
+import axios from 'axios';
+import * as fs from 'fs';
+import * as path from 'path';
 
 import { VertexAI, HarmCategory, HarmBlockThreshold } from '@google-cloud/vertexai';
 import { LoggingService } from './logging.util';
 import { commonResponseMessages } from '../constants/common.constants';
 import { v4 as uuidv4 } from 'uuid';
 import { kbResponseMessages } from '../../kb/constants/kb.constants';
+import type { KbFileUploadOpenAIParams, KbFileUploadResult } from '../../kb/types/kb.types';
+import { utilMessages } from '../constants/util.contant';
 
 @Injectable()
 export class AiUtilService {
@@ -33,7 +38,7 @@ export class AiUtilService {
       const vertex_ai = new VertexAI({
         project: ProjectId!,
         location: 'us-central1',
-        googleAuthOptions: { credentials: { private_key: APIKey, client_email: ClientEmail}}
+        googleAuthOptions: { credentials: { private_key: APIKey, client_email: ClientEmail } }
       });
 
       const generativeModel = vertex_ai.getGenerativeModel({
@@ -88,7 +93,7 @@ export class AiUtilService {
       const resp = await openai.files.delete(FileId as any);
       return !!resp;
     } catch (error: any) {
-      this.logger.warn('KB file delete failed', error?.message || error);
+      this.logger.warn(utilMessages?.KbFileDeleteError, error?.message || error);
       return false;
     }
   }
@@ -100,7 +105,7 @@ export class AiUtilService {
       const resp = await (openai as any).vectorStores?.delete?.(VectorStoreId);
       return !!resp;
     } catch (error: any) {
-      this.logger.warn('KB vector store delete failed', error?.message || error);
+      this.logger.warn(utilMessages?.KbDeleteVectorStoreError, error?.message || error);
       return false;
     }
   }
@@ -112,8 +117,45 @@ export class AiUtilService {
       const resp = await (openai as any).assistants?.delete?.(AssistantId);
       return !!resp;
     } catch (error: any) {
-      this.logger.warn('KB assistant delete failed', error?.message || error);
+      this.logger.warn(utilMessages?.KbDeleteAssistantError, error?.message || error);
       return false;
+    }
+  }
+
+  // Upload a file to OpenAI assistants files and return XPRef meta for KB
+  async kbFileUploadOpenAI({ APIKey, KBUID, FileName, FileURL }: KbFileUploadOpenAIParams): Promise<KbFileUploadResult | null> {
+    const openai = new OpenAI({ apiKey: APIKey });
+    const uploadDir = path.join(__dirname, process.env.OPENAI_KB_FILE_PATH!);
+    const localFilePath = path.join(uploadDir, FileName);
+
+    try {
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      const response = await axios.get(FileURL, { responseType: 'stream' });
+      const writer = fs.createWriteStream(localFilePath);
+
+      await new Promise<void>((resolve, reject) => {
+        response.data.pipe(writer);
+        writer.on('finish', () => resolve());
+        writer.on('error', (err: any) => reject(err));
+      });
+
+      const upload = await openai.files.create({ file: fs.createReadStream(localFilePath), purpose: 'assistants' });
+
+      // Clean up local temp file
+      fs.unlinkSync(localFilePath);
+
+      return {
+        KBUID,
+        FileName,
+        FileURL,
+        XPRef: { FileId: upload.id, Status: 'Inactive' },
+      } as KbFileUploadResult;
+    } catch (error: any) {
+      this.logger.error(kbResponseMessages.fileUploadFailed, error?.message || error);
+      return null;
     }
   }
 }
