@@ -10,6 +10,9 @@ import KBAssistant from './entities/kb-assistant.entity';
 import { LoggingService } from '../common/utils/logging.util';
 import { baseTenantDataSourceOptions } from './config/tenant-datasource.config';
 import type { TenantInfo, TenantConnectResult, DBRegistry, NucleusSignInResponse, NucleusListTenantsResponse, authenticateWithNucleusResponse } from './types/db.types';
+import { dbMessages } from './constants/db.constants';
+
+// Centralized log message constants moved to constants/log.constants.ts
 
 @Injectable()
 export class TenantDbService implements OnModuleInit {
@@ -53,20 +56,20 @@ export class TenantDbService implements OnModuleInit {
 
             await dataSource.initialize();
 
-            this.registry[tenant.Code.toLowerCase()] = { dataSource, tenant };
-            this.logger.info(`Connected tenant: ${tenant.Code}`);
+            this.registry[tenant?.Code.toLowerCase()] = { dataSource, tenant };
+            this.logger.info(`${dbMessages?.ConnectedTenant} ${tenant.Code}`);
             return { tenantCode: tenant.Code, dataSource, success: true } as TenantConnectResult;
           } catch (err: any) {
-            this.logger.error(`Tenant connection failed ${tenant.Code}:`, err?.message || err);
+            this.logger.error(`${dbMessages?.TenantConnectionFailed} ${tenant.Code}:`, err?.message || err);
             return { tenantCode: tenant.Code, dataSource: null, success: false } as TenantConnectResult;
           }
         })
       );
 
-      this.logger.info(`DB connect success for ${results.filter((r) => r.success).length} tenants.`);
+      this.logger.info(`${dbMessages?.DbConnectSuccessFor} ${results.filter((r) => r.success).length} tenants.`);
       return results;
     } catch (error: any) {
-      this.logger.error('DB connect error', error?.message || error);
+      this.logger.error(dbMessages?.DbConnectError, error?.message || error);
       throw error;
     }
   }
@@ -86,7 +89,7 @@ export class TenantDbService implements OnModuleInit {
 
       return { tenantsList, accessToken };
     } catch (error: any) {
-      this.logger.error('Nucleus error', error?.message || error);
+      this.logger.error(dbMessages?.NucleusError, error?.message || error);
       return { tenantsList: [], accessToken: '' };
     }
   }

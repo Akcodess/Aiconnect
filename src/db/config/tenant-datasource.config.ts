@@ -1,13 +1,11 @@
 import { DataSourceOptions } from 'typeorm';
 
+// MySQL-only base options shared by tenant connections
 export const baseTenantDataSourceOptions: DataSourceOptions = {
-  type: 'mysql',
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '3306'),
-  username: process.env.DB_USER || 'root',
-  // Support both DB_PASSWORD and DB_PASS env names
-  password: process.env.DB_PASS || '',
-  // Entities are set explicitly in the service using class constructors
+  type: process.env.DIALECT as any,
+  host: process.env.DB_HOST!,
+  port: parseInt(process.env.DB_PORT!),
+  username: process.env.DB_USER!,
+  password: process.env.DB_PASS,
   synchronize: false,
-  logging: false,
 };

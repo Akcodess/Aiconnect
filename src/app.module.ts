@@ -12,6 +12,7 @@ import { TextToSpeechModule } from './text-to-speech/text-to-speech.module';
 import { OpenChatModule } from './openchat/openchat.module';
 import { InsightModule } from './insight/insight.module';
 import { DBModule } from './db/db.module';
+import { KbModule } from './kb/kb.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { DBModule } from './db/db.module';
     OpenChatModule,
     InsightModule,
     DBModule,
+    KbModule,
   ]
 })
 export class AppModule { }

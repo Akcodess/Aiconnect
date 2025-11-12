@@ -9,6 +9,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 
 import { ResponseExceptionFilter } from './common/filters/response-exception.filter';
+import { TenantDbService } from './db/tenant-db.service';
 async function bootstrap() {
   // Create a single Express instance to serve both HTTP and HTTPS
   const server = express();
