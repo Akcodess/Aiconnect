@@ -56,6 +56,9 @@ export class AiUtilService {
     }
   }
 
+
+  //KB AI Handler
+
   // Initialize a KB for OpenAI by creating a Vector Store and returning KBUID + XPRef meta
   async kbInitOpenAI({ APIKey, XPlatformID }: { APIKey: string; XPlatformID: string }): Promise<any> {
     const openai = new OpenAI({ apiKey: APIKey });

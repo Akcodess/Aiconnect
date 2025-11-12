@@ -11,6 +11,7 @@ import { KbPlatformSID } from './types/kb.types';
 import { kbResponseMessages, kbResponseCodes } from './constants/kb.constants';
 import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
 import type { KbInitResult } from './types/kb.types';
+import { KbInitResponseEnvelopeDto } from './dto/kb.dto';
 import type { KbInitDto } from './dto/kb.dto';
 
 @Injectable()
@@ -23,10 +24,13 @@ export class KbService {
   ) { }
 
   // Common execution wrapper for KB endpoints: validates SID, logs, and standardizes response handling
-  private async execute<T>(req: CustomJwtRequest, handlerFn: (ctx: { req: CustomJwtRequest; xplatform: string; apikey?: string; tenantCode: string }) => Promise<T>,
-    successMsg: string, successCode: string, failureMsg: string, failureCode: string,
+  private async execute<T>(
+    req: CustomJwtRequest,
+    handlerFn: (ctx: { req: CustomJwtRequest; xplatform: string; apikey?: string; tenantCode: string }) => Promise<T>,
+    envelopeCtor: new (...args: any[]) => any,
+    successMsg: string, successCode: string, failureMsg: string, failureCode: string, dto?: { ReqId?: string; ReqCode?: string },
   ) {
-    const { ReqId, ReqCode } = req.method !== 'POST' ? req.query as Record<string, string> : req.body as Record<string, string>;
+    const { ReqId, ReqCode } = dto ?? (req.method !== 'POST' ? (req.query as Record<string, string>) : (req.body as Record<string, string>));
 
     const xplatform = req.XPlatformID as string;
     const apikey = req.XPlatformUA?.APISecretKey;
@@ -45,14 +49,14 @@ export class KbService {
     try {
       const result = await handlerFn({ req, xplatform, apikey, tenantCode });
       this.logger.info(successMsg);
-      return plainToInstance(Object, this.responseHelper.successNest(successMsg, successCode, result, ReqId, ReqCode));
+      return plainToInstance(envelopeCtor, this.responseHelper.successNest(successMsg, successCode, result, ReqId, ReqCode));
     } catch (error: any) {
       this.logger.error(failureMsg, error?.message || error);
       return this.responseHelper.failNest(InternalServerErrorException, failureMsg, failureCode, ReqId, ReqCode);
     }
   }
 
-  async init(req: CustomJwtRequest) {
+  async init(req: CustomJwtRequest, dto: KbInitDto) {
     return this.execute<KbInitResult | null>(
       req,
       async ({ xplatform, apikey, tenantCode }) => {
@@ -62,21 +66,23 @@ export class KbService {
         const ds: any = this.tenantDb?.getTenantDataSource(tenantCode);
         const tenantInfo = this.tenantDb?.getTenantInfo(tenantCode);
 
-        const repo = ds.getRepository(KBStore);
+        const repo = ds?.getRepository(KBStore);
         const toSave = repo?.create({
           KBUID: initResult?.KBUID,
-          XPlatformID: xplatform,
+          XPlatformID: initResult?.XPlatformID,
           XPRef: initResult?.XPRef,
-          CreatedBy: Number(tenantInfo?.Id),
+          CreatedBy: Number(tenantInfo?.Id)
         });
         await repo?.save(toSave);
 
         return initResult;
       },
+      KbInitResponseEnvelopeDto,
       kbResponseMessages.kbInitSuccess,
       kbResponseCodes.kbInitSuccess,
       kbResponseMessages.kbInitFailed,
       commonResponseCodes.InternalServerError,
+      dto,
     );
   }
 }

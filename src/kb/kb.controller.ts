@@ -3,7 +3,7 @@ import { KbService } from './kb.service';
 import type { CustomJwtRequest } from '../common/types/request.types';
 import { AuthGuard } from '../common/guards/session.guard';
 import { apiVersion } from '../common/constants/version.constants';
-import { KbInitDto } from './dto/kb.dto';
+import { KbInitDto, KbInitResponseEnvelopeDto } from './dto/kb.dto';
 
 @Controller({ path: 'kb', version: apiVersion })
 export class KbController {
@@ -12,7 +12,7 @@ export class KbController {
   @Post('init')
   @UseGuards(AuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
-  async init(@Req() req: CustomJwtRequest, @Body() dto: KbInitDto) {
-    return this.service?.init(req);
+  async init(@Req() req: CustomJwtRequest, @Body() dto: KbInitDto): Promise<KbInitResponseEnvelopeDto> {
+    return this.service?.init(req, dto) as Promise<KbInitResponseEnvelopeDto>;
   }
 }

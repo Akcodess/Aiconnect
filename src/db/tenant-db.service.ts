@@ -51,6 +51,7 @@ export class TenantDbService implements OnModuleInit {
               ...baseTenantDataSourceOptions,
               database: tenantDbName,
               entities,
+              synchronize: true,
             } as DataSourceOptions;
             const dataSource = new DataSource(dsOptions);
 
@@ -60,7 +61,32 @@ export class TenantDbService implements OnModuleInit {
             this.logger.info(`${dbMessages?.ConnectedTenant} ${tenant.Code}`);
             return { tenantCode: tenant.Code, dataSource, success: true } as TenantConnectResult;
           } catch (err: any) {
-            this.logger.error(`${dbMessages?.TenantConnectionFailed} ${tenant.Code}:`, err?.message || err);
+            const msg = err?.message ?? '';
+            // If schema/table already exists error occurs, try to reuse existing connection or fallback without synchronize
+            if (msg.toLowerCase().includes('already exists') || msg.toLowerCase().includes('exists')) {
+              const existing = this.registry[tenant?.Code.toLowerCase()]?.dataSource;
+              if (existing && existing.isInitialized) {
+                return { tenantCode: tenant?.Code, dataSource: existing, success: true } as TenantConnectResult;
+              }
+
+              try {
+                const entities = await this.loadEntities();
+                const fallbackOptions: DataSourceOptions = {
+                  ...baseTenantDataSourceOptions,
+                  database: tenantDbName,
+                  entities,
+                  synchronize: false,
+                } as DataSourceOptions;
+                const fallback = new DataSource(fallbackOptions);
+                await fallback.initialize();
+                this.registry[tenant?.Code.toLowerCase()] = { dataSource: fallback, tenant };
+                return { tenantCode: tenant.Code, dataSource: fallback, success: true } as TenantConnectResult;
+              } catch (innerErr: any) {
+                return { tenantCode: tenant.Code, dataSource: null, success: false } as TenantConnectResult;
+              }
+            }
+
+            // Unknown error: rethrow as failure for this tenant
             return { tenantCode: tenant.Code, dataSource: null, success: false } as TenantConnectResult;
           }
         })

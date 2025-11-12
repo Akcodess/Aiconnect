@@ -14,3 +14,34 @@ export class KbInitDto {
   @IsNotEmpty()
   ReqCode!: string;
 }
+
+// Standard response envelope for KB init
+export class KbInitResponseEnvelopeDto {
+  @Expose()
+  @Transform(({ value }) => value ?? kbResponseMessages.kbInitSuccess)
+  Message!: string;
+
+  @Expose()
+  @Transform(({ value }) => value ?? moment().format('YYYY-MM-DD HH:mm:ss'))
+  TimeStamp!: string;
+
+  @Expose()
+  @Transform(({ value }) => value ?? kbResponseCodes.kbInitSuccess)
+  EvCode!: string;
+
+  @Expose()
+  @Transform(({ value }) => value ?? EvType.Success)
+  EvType!: EvType;
+
+  @Expose()
+  @Transform(({ value }) => (value != null ? String(value).trim() : ''))
+  ReqId?: string;
+
+  @Expose()
+  @Transform(({ value }) => (value != null ? String(value).trim() : ''))
+  ReqCode?: string;
+
+  @Expose()
+  @Type(() => Object)
+  Data!: KbInitResult;
+}

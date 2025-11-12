@@ -2,7 +2,8 @@ import {Entity, PrimaryGeneratedColumn, Column, Index, CreateDateColumn, UpdateD
 
 import { KBStore } from './kb-store.entity';
 
-@Entity({ name: 'KBAssistant' })
+// Use lowercase table names to avoid case sensitivity issues on MySQL (lower_case_table_names)
+@Entity({ name: 'kbassistant' })
 export class KBAssistant {
   @PrimaryGeneratedColumn()
   Id!: number;

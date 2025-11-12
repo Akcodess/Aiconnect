@@ -3,7 +3,7 @@ export const kbResponseMessages = {
   // Init
   kbInitRequestBody: 'KB init request received',
   kbInitStarted: 'KB init started',
-  kbInitSuccess: 'KB init success',
+  kbInitSuccess: 'KB Init successfully',
   kbInitFailed: 'KB init failed',
   // Store listing
   storeListRequestBody: 'KB store list request received',
