@@ -14,9 +14,9 @@ import { KbPlatformSID } from './types/kb.types';
 import { kbResponseMessages, kbResponseCodes } from './constants/kb.constants';
 import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
 import type { KbInitResult, KbStoreSummary, KbDeleteResult } from './types/kb.types';
-import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto } from './dto/kb.dto';
-import type { KbInitDto, KbStoreListDto, KbDeleteDto, KbFileUploadDto } from './dto/kb.dto';
-import type { KbFileUploadResult } from './types/kb.types';
+import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto, KbFileListResponseEnvelopeDto } from './dto/kb.dto';
+import type { KbInitDto, KbStoreListDto, KbDeleteDto, KbFileUploadDto, KbFileListDto } from './dto/kb.dto';
+import type { KbFileUploadResult, KbFileSummary } from './types/kb.types';
 
 @Injectable()
 export class KbService {
@@ -208,20 +208,25 @@ export class KbService {
         // Call per-platform KB file upload
         const ops = this.kbHandler?.getOps(xplatform);
         const responseResult = await ops?.KbFileUpload?.(xplatform, { APIKey: apikey }, { KBUID, FileName, FileURL }) ?? null;
-
+        if (!responseResult) {
+          throw new Error(kbResponseMessages.fileUploadFailed);
+        }
 
         const ds: DataSource | null = this.tenantDb.getTenantDataSource(tenantCode);
         const tenantInfo = this.tenantDb?.getTenantInfo(tenantCode);
+        if (!ds) {
+          throw new Error(kbResponseMessages.tenantDbUnavailable);
+        }
 
-        const repo = ds?.getRepository(KBFile);
-        const toSave = repo?.create({
-          KBUID: responseResult?.KBUID,
-          FileName: responseResult?.FileName,
-          FileURL: responseResult?.FileURL,
-          XPRef: responseResult?.XPRef,
+        const repo = ds.getRepository(KBFile);
+        const toSave = repo.create({
+          KBUID: responseResult.KBUID,
+          FileName: responseResult.FileName,
+          FileURL: responseResult.FileURL,
+          XPRef: responseResult.XPRef,
           CreatedBy: Number(tenantInfo?.Id),
         });
-        await repo?.save(toSave!);
+        await repo.save(toSave);
 
         return responseResult;
       },
@@ -229,6 +234,42 @@ export class KbService {
       kbResponseMessages.fileUploadSuccess,
       kbResponseCodes.fileUploadSuccess,
       kbResponseMessages.fileUploadFailed,
+      commonResponseCodes.InternalServerError,
+      dto,
+    );
+  }
+
+  async getFiles(req: CustomJwtRequest, dto: KbFileListDto) {
+    return this.execute<KbFileSummary[]>(
+      req,
+      async ({ tenantCode }) => {
+        const { id } = req.params as { id: string };
+        const ds: DataSource | null = this.tenantDb.getTenantDataSource(tenantCode);
+
+        const repo = ds?.getRepository(KBFile);
+        const rows: KBFile[] | undefined = await repo?.find({ where: { KBUID: id } });
+
+        if (!rows || rows.length === 0) {
+          this.logger.warn(kbResponseMessages.kbFileNotFound, id);
+          throw new Error(kbResponseMessages.kbFileNotFound);
+        }
+
+        const result: KbFileSummary[] = rows.map((r) => ({
+          Id: r.Id,
+          KBUID: r.KBUID,
+          FileName: r.FileName,
+          FileURL: r.FileURL,
+          XPRef: r.XPRef,
+          CreatedOn: r.CreatedOn,
+          EditedOn: r.EditedOn,
+        }));
+        this.logger.info(kbResponseMessages.fileListSuccess, JSON.stringify(result));
+        return result;
+      },
+      KbFileListResponseEnvelopeDto,
+      kbResponseMessages.fileListSuccess,
+      kbResponseCodes.fileListSuccess,
+      kbResponseMessages.fileListFailed,
       commonResponseCodes.InternalServerError,
       dto,
     );
