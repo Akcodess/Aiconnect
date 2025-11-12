@@ -4,14 +4,14 @@ import { plainToInstance } from 'class-transformer';
 import { ResponseHelperService } from '../common/helpers/response.helper';
 import { LoggingService } from '../common/utils/logging.util';
 import type { CustomJwtRequest } from '../common/types/request.types';
-import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
-import { kbResponseCodes, kbResponseMessages } from './constants/kb.constants';
-import { KbPlatformSID } from './types/kb.types';
-import type { KbStoreSummary, KbFileSummary } from './types/kb.types';
 import { TenantDbService } from '../db/tenant-db.service';
 import KBStore from '../db/entities/kb-store.entity';
-import KBFile from '../db/entities/kb-file.entity';
-import { KbStoreListDto, KbStoreListResponseEnvelopeDto, KbFileListDto, KbFileListResponseEnvelopeDto } from './dto/kb.dto';
+import { KbAIHandlerService } from './ai-handler.service';
+import { KbPlatformSID } from './types/kb.types';
+import { kbResponseMessages, kbResponseCodes } from './constants/kb.constants';
+import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
+import type { KbInitResult } from './types/kb.types';
+import type { KbInitDto } from './dto/kb.dto';
 
 @Injectable()
 export class KbService {
@@ -19,86 +19,64 @@ export class KbService {
     private readonly responseHelper: ResponseHelperService,
     private readonly logger: LoggingService,
     private readonly tenantDb: TenantDbService,
-  ) {}
+    private readonly kbHandler: KbAIHandlerService,
+  ) { }
 
-  async listStores(req: CustomJwtRequest, body: KbStoreListDto): Promise<KbStoreListResponseEnvelopeDto> {
-    const xplatformSID = req?.XPlatformSID;
-    const { ReqId, ReqCode, XPlatformID } = body;
+  // Common execution wrapper for KB endpoints: validates SID, logs, and standardizes response handling
+  private async execute<T>(req: CustomJwtRequest, handlerFn: (ctx: { req: CustomJwtRequest; xplatform: string; apikey?: string; tenantCode: string }) => Promise<T>,
+    successMsg: string, successCode: string, failureMsg: string, failureCode: string,
+  ) {
+    const { ReqId, ReqCode } = req.method !== 'POST' ? req.query as Record<string, string> : req.body as Record<string, string>;
 
-    this.logger.info(kbResponseMessages.storeListRequestBody, JSON.stringify(body));
+    const xplatform = req.XPlatformID as string;
+    const apikey = req.XPlatformUA?.APISecretKey;
+    const tenantCode = req.TenantCode!;
+    const xplatformSID = req.XPlatformSID;
 
-    // SID validation to follow existing flow
-    if (xplatformSID !== KbPlatformSID.KBStores) {
-      return this.responseHelper.failNest(BadRequestException, commonResponseMessages?.SidMismatch, commonResponseCodes?.XPlatformSidMismatch, ReqId, ReqCode);
+    this.logger.info('Request Query:', JSON.stringify(req.query));
+    this.logger.info('Request Body:', JSON.stringify(req.body));
+
+    // SID validation for KB endpoints
+    if (xplatformSID !== KbPlatformSID.KB) {
+      this.logger.warn(commonResponseMessages?.SidMismatch);
+      return this.responseHelper.failNest(BadRequestException, commonResponseMessages.SidMismatch, commonResponseCodes.XPlatformSidMismatch, ReqId, ReqCode);
     }
 
     try {
-      const dataSource = this.tenantDb.getTenantDataSource(req.TenantCode!);
-      if (!dataSource) {
-        return this.responseHelper.failNest(InternalServerErrorException, commonResponseMessages?.InternalError, commonResponseCodes?.InternalServerError, ReqId, ReqCode);
-      }
-
-      const repo = dataSource.getRepository(KBStore);
-      const whereClause = XPlatformID ? { XPlatformID } : {};
-      const stores = await repo.find({ where: whereClause });
-
-      const summaries: KbStoreSummary[] = stores.map(s => ({
-        Id: s.Id,
-        KBUID: s.KBUID,
-        XPlatformID: s.XPlatformID,
-        XPRef: s.XPRef,
-        CreatedOn: s.CreatedOn,
-        EditedOn: s.EditedOn,
-      }));
-
-      this.logger.info(kbResponseMessages.storeListSuccess);
-      return plainToInstance(
-        KbStoreListResponseEnvelopeDto,
-        this.responseHelper.successNest(kbResponseMessages.storeListSuccess, kbResponseCodes.storeListSuccess, summaries, ReqId, ReqCode)
-      );
-    } catch (err: any) {
-      this.logger.error(kbResponseMessages.storeListFailed, err);
-      return this.responseHelper.failNest(InternalServerErrorException, kbResponseMessages.storeListFailed, kbResponseCodes.internalServerError, ReqId, ReqCode);
+      const result = await handlerFn({ req, xplatform, apikey, tenantCode });
+      this.logger.info(successMsg);
+      return plainToInstance(Object, this.responseHelper.successNest(successMsg, successCode, result, ReqId, ReqCode));
+    } catch (error: any) {
+      this.logger.error(failureMsg, error?.message || error);
+      return this.responseHelper.failNest(InternalServerErrorException, failureMsg, failureCode, ReqId, ReqCode);
     }
   }
 
-  async listFiles(req: CustomJwtRequest, body: KbFileListDto): Promise<KbFileListResponseEnvelopeDto> {
-    const xplatformSID = req?.XPlatformSID;
-    const { ReqId, ReqCode, KBUID } = body;
+  async init(req: CustomJwtRequest) {
+    return this.execute<KbInitResult | null>(
+      req,
+      async ({ xplatform, apikey, tenantCode }) => {
+        // Dispatch to platform-specific KB init via handler
+        const initResult = await this.kbHandler.dispatch({ platform: xplatform, creds: { APIKey: apikey } });
 
-    this.logger.info(kbResponseMessages.fileListRequestBody, JSON.stringify(body));
+        const ds: any = this.tenantDb?.getTenantDataSource(tenantCode);
+        const tenantInfo = this.tenantDb?.getTenantInfo(tenantCode);
 
-    if (xplatformSID !== KbPlatformSID.KBFiles) {
-      return this.responseHelper.failNest(BadRequestException, commonResponseMessages?.SidMismatch, commonResponseCodes?.XPlatformSidMismatch, ReqId, ReqCode);
-    }
+        const repo = ds.getRepository(KBStore);
+        const toSave = repo?.create({
+          KBUID: initResult?.KBUID,
+          XPlatformID: xplatform,
+          XPRef: initResult?.XPRef,
+          CreatedBy: Number(tenantInfo?.Id),
+        });
+        await repo?.save(toSave);
 
-    try {
-      const dataSource = this.tenantDb.getTenantDataSource(req.TenantCode!);
-      if (!dataSource) {
-        return this.responseHelper.failNest(InternalServerErrorException, commonResponseMessages?.InternalError, commonResponseCodes?.InternalServerError, ReqId, ReqCode);
-      }
-
-      const repo = dataSource.getRepository(KBFile);
-      const files = await repo.find({ where: { KBUID } });
-
-      const summaries: KbFileSummary[] = files.map(f => ({
-        Id: f.Id,
-        KBUID: f.KBUID,
-        FileName: f.FileName,
-        FileURL: f.FileURL,
-        XPRef: f.XPRef,
-        CreatedOn: f.CreatedOn,
-        EditedOn: f.EditedOn,
-      }));
-
-      this.logger.info(kbResponseMessages.fileListSuccess);
-      return plainToInstance(
-        KbFileListResponseEnvelopeDto,
-        this.responseHelper.successNest(kbResponseMessages.fileListSuccess, kbResponseCodes.fileListSuccess, summaries, ReqId, ReqCode)
-      );
-    } catch (err: any) {
-      this.logger.error(kbResponseMessages.fileListFailed, err);
-      return this.responseHelper.failNest(InternalServerErrorException, kbResponseMessages.fileListFailed, kbResponseCodes.internalServerError, ReqId, ReqCode);
-    }
+        return initResult;
+      },
+      kbResponseMessages.kbInitSuccess,
+      kbResponseCodes.kbInitSuccess,
+      kbResponseMessages.kbInitFailed,
+      commonResponseCodes.InternalServerError,
+    );
   }
 }

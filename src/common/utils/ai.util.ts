@@ -4,6 +4,8 @@ import OpenAI from 'openai';
 import { VertexAI, HarmCategory, HarmBlockThreshold } from '@google-cloud/vertexai';
 import { LoggingService } from './logging.util';
 import { commonResponseMessages } from '../constants/common.constants';
+import { v4 as uuidv4 } from 'uuid';
+import { kbResponseMessages } from '../../kb/constants/kb.constants';
 
 @Injectable()
 export class AiUtilService {
@@ -50,6 +52,28 @@ export class AiUtilService {
       return resp?.response?.candidates?.[0]?.content?.parts?.[0]?.text || null;
     } catch (err: any) {
       this.logger.error(commonResponseMessages?.ChatCompletionErrorGoogle, err?.message || err);
+      return null;
+    }
+  }
+
+  // Initialize a KB for OpenAI by creating a Vector Store and returning KBUID + XPRef meta
+  async kbInitOpenAI({ APIKey, XPlatformID }: { APIKey: string; XPlatformID: string }): Promise<any> {
+    const openai = new OpenAI({ apiKey: APIKey });
+
+    try {
+      const kbuid = uuidv4();
+      const vectorStore = await openai.vectorStores.create({
+        name: `kb-vector-${kbuid}`,
+      });
+      const vectorStoreId = vectorStore.id;
+
+      return {
+        KBUID: kbuid,
+        XPlatformID: XPlatformID,
+        XPRef: { VectorStoreId: vectorStoreId },
+      };
+    } catch (error: any) {
+      this.logger.error(kbResponseMessages.kbInitFailed, error?.message || error);
       return null;
     }
   }

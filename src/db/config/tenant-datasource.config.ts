@@ -7,5 +7,5 @@ export const baseTenantDataSourceOptions: DataSourceOptions = {
   port: parseInt(process.env.DB_PORT!),
   username: process.env.DB_USER!,
   password: process.env.DB_PASS,
-  synchronize: false,
+  synchronize: true,
 };

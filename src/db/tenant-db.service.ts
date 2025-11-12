@@ -99,7 +99,7 @@ export class TenantDbService implements OnModuleInit {
       ...baseTenantDataSourceOptions,
       name: `admin_${Date.now()}`,
       entities: [],
-      synchronize: false,
+      synchronize: true,
     } as DataSourceOptions;
     const admin = new DataSource(tempOptions);
 
@@ -119,5 +119,9 @@ export class TenantDbService implements OnModuleInit {
 
   public getTenantDataSource(code: string): DataSource | null {
     return this.registry[code.toLowerCase()]?.dataSource ?? null;
+  }
+
+  public getTenantInfo(code: string) {
+    return this.registry[code.toLowerCase()]?.tenant ?? null;
   }
 }
