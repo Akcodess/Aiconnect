@@ -23,6 +23,9 @@ export interface KbInitDispatchOptions {
 // Interface for per-platform KB operations implemented by handler service
 export interface KbHandlerOps {
   KbInit: (platform: string, creds: KbHandlerCreds) => Promise<KbInitResult | null>;
+  KbFileDelete?: (platform: string, creds: KbHandlerCreds, fileId: string) => Promise<boolean>;
+  VectorStoreDelete?: (platform: string, creds: KbHandlerCreds, vectorStoreId: string) => Promise<boolean>;
+  AssistantDelete?: (platform: string, creds: KbHandlerCreds, assistantId: string) => Promise<boolean>;
 }
 
 export interface KbStoreSummary {
@@ -42,4 +45,8 @@ export interface KbFileSummary {
   XPRef: Record<string, any>;
   CreatedOn: Date;
   EditedOn: Date;
+}
+
+export interface KbDeleteResult {
+  KBUID: string;
 }

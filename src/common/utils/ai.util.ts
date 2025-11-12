@@ -80,4 +80,40 @@ export class AiUtilService {
       return null;
     }
   }
+
+  // Delete a file in OpenAI (used for KB file cleanup)
+  async kbDeleteFileOpenAI({ APIKey, FileId }: { APIKey: string; FileId: string }): Promise<boolean> {
+    const openai = new OpenAI({ apiKey: APIKey });
+    try {
+      const resp = await openai.files.delete(FileId as any);
+      return !!resp;
+    } catch (error: any) {
+      this.logger.warn('KB file delete failed', error?.message || error);
+      return false;
+    }
+  }
+
+  // Delete a vector store in OpenAI
+  async kbDeleteVectorStoreOpenAI({ APIKey, VectorStoreId }: { APIKey: string; VectorStoreId: string }): Promise<boolean> {
+    const openai = new OpenAI({ apiKey: APIKey });
+    try {
+      const resp = await (openai as any).vectorStores?.delete?.(VectorStoreId);
+      return !!resp;
+    } catch (error: any) {
+      this.logger.warn('KB vector store delete failed', error?.message || error);
+      return false;
+    }
+  }
+
+  // Delete an assistant in OpenAI
+  async kbDeleteAssistantOpenAI({ APIKey, AssistantId }: { APIKey: string; AssistantId: string }): Promise<boolean> {
+    const openai = new OpenAI({ apiKey: APIKey });
+    try {
+      const resp = await (openai as any).assistants?.delete?.(AssistantId);
+      return !!resp;
+    } catch (error: any) {
+      this.logger.warn('KB assistant delete failed', error?.message || error);
+      return false;
+    }
+  }
 }

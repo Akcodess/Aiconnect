@@ -5,6 +5,8 @@ export const kbResponseMessages = {
   kbInitStarted: 'KB init started',
   kbInitSuccess: 'KB Init successfully',
   kbInitFailed: 'KB init failed',
+  tenantDbUnavailable: 'Tenant database is not available',
+  kbNotFound: 'KB not found',
   // Store listing
   storeListRequestBody: 'KB store list request received',
   storeListStarted: 'KB store list started',
@@ -15,11 +17,22 @@ export const kbResponseMessages = {
   fileListStarted: 'KB file list started',
   fileListSuccess: 'KB file list success',
   fileListFailed: 'KB file list failed',
+  // Delete
+  deleteKbStarted: 'KB delete started',
+  deleteKbSuccess: 'KB deleted successfully',
+  deleteKbFailed: 'KB delete failed',
+  fileDeleteSuccess: 'KB file deleted',
+  fileDeleteFailed: 'KB file delete failed',
+  vectorStoreDeleteSuccess: 'KB vector store deleted',
+  vectorStoreDeleteFailed: 'KB vector store delete failed',
+  assistantDeleteSuccess: 'KB assistant deleted',
+  assistantDeleteFailed: 'KB assistant delete failed',
 } as const;
 
 export const kbResponseCodes = {
   kbInitSuccess: 'KBInitSuccess',
   storeListSuccess: 'GetKbSuccess',
   fileListSuccess: 'KBFileListSuccess',
+  deleteKbSuccess: 'DeleteKbSuccess',
   internalServerError: 'InternalServerError',
 } as const;

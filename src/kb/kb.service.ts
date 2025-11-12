@@ -1,19 +1,21 @@
 import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
+import type { DataSource } from 'typeorm';
 
 import { ResponseHelperService } from '../common/helpers/response.helper';
 import { LoggingService } from '../common/utils/logging.util';
 import type { CustomJwtRequest } from '../common/types/request.types';
 import { TenantDbService } from '../db/tenant-db.service';
 import KBStore from '../db/entities/kb-store.entity';
+import KBFile from '../db/entities/kb-file.entity';
+import KBAssistant from '../db/entities/kb-assistant.entity';
 import { KbAIHandlerService } from './ai-handler.service';
 import { KbPlatformSID } from './types/kb.types';
 import { kbResponseMessages, kbResponseCodes } from './constants/kb.constants';
 import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
-import type { KbInitResult, KbStoreSummary } from './types/kb.types';
-import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto } from './dto/kb.dto';
-import type { KbInitDto, KbStoreListDto } from './dto/kb.dto';
-import type { DataSource } from 'typeorm';
+import type { KbInitResult, KbStoreSummary, KbDeleteResult } from './types/kb.types';
+import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto } from './dto/kb.dto';
+import type { KbInitDto, KbStoreListDto, KbDeleteDto } from './dto/kb.dto';
 
 @Injectable()
 export class KbService {
@@ -61,14 +63,18 @@ export class KbService {
     return this.execute<KbInitResult | null>(
       req,
       async ({ xplatform, apikey, tenantCode }) => {
-        // Dispatch to platform-specific KB init via handler
-        const initResult = await this.kbHandler.dispatch({ platform: xplatform, creds: { APIKey: apikey } });
+        // Directly call platform-specific KB init via handler ops (no dispatch wrapper)
+        const ops = this.kbHandler.getOps(xplatform);
+        const initResult = await ops?.KbInit?.(xplatform, { APIKey: apikey }) ?? null;
+        if (!initResult) {
+          throw new Error(kbResponseMessages.kbInitFailed);
+        }
 
         const ds: DataSource | null = this.tenantDb.getTenantDataSource(tenantCode);
         const tenantInfo = this.tenantDb?.getTenantInfo(tenantCode);
 
         if (!ds) {
-          throw new Error('Tenant database is not available');
+          throw new Error(kbResponseMessages.tenantDbUnavailable);
         }
 
         const repo = ds.getRepository(KBStore);
@@ -113,6 +119,80 @@ export class KbService {
       kbResponseMessages.storeListSuccess,
       kbResponseCodes.storeListSuccess,
       kbResponseMessages.storeListFailed,
+      commonResponseCodes.InternalServerError,
+      dto,
+    );
+  }
+
+  async deleteKb(req: CustomJwtRequest, dto: KbDeleteDto) {
+    return this.execute<KbDeleteResult>(
+      req,
+      async ({ xplatform, apikey, tenantCode }) => {
+        const ds: DataSource | null = this.tenantDb.getTenantDataSource(tenantCode);
+        const { id } = req.params as { id: string };
+
+        // Get KB details
+        const kbRepo = ds?.getRepository(KBStore);
+        const kb = await kbRepo?.findOne({ where: { KBUID: id } });
+        if (!kb) {
+          this.logger.warn(kbResponseMessages.kbNotFound, id);
+          throw new Error(kbResponseMessages.kbNotFound);
+        }
+        const KBUID = kb.KBUID;
+        const XPRef = kb?.XPRef ?? {};
+
+        // Delete files from OpenAI
+        const fileRepo = ds?.getRepository(KBFile);
+        const files = await fileRepo?.find({ where: { KBUID } });
+        const fileIds = (files || []).map((f) => (f?.XPRef ? (f?.XPRef as any)?.FileId : undefined))
+
+        const ops = this.kbHandler?.getOps(xplatform);
+
+        for (const fileId of fileIds) {
+          try {
+            const ok = await ops?.KbFileDelete?.(xplatform, { APIKey: apikey }, fileId);
+            if (ok) this.logger.info(kbResponseMessages.fileDeleteSuccess, fileId);
+          } catch (e: any) {
+            this.logger.warn(kbResponseMessages.fileDeleteFailed, `${fileId}: ${e?.message || e}`);
+          }
+        }
+
+        // Delete vectorstore from OpenAI
+        const vectorStoreId: string | undefined = (XPRef as any)?.VectorStoreId;
+        if (vectorStoreId) {
+          try {
+            const ok = await ops?.VectorStoreDelete?.(xplatform, { APIKey: apikey }, vectorStoreId);
+            if (ok) this.logger.info(kbResponseMessages.vectorStoreDeleteSuccess, vectorStoreId);
+          } catch (e: any) {
+            this.logger.warn(kbResponseMessages.vectorStoreDeleteFailed, `${vectorStoreId}: ${e?.message || e}`);
+          }
+        }
+
+        // Delete assistant from OpenAI
+        const assistantId: string | undefined = (XPRef as any)?.AssistantId;
+        if (assistantId) {
+          try {
+            const ok = await ops?.AssistantDelete?.(xplatform, { APIKey: apikey }, assistantId);
+            if (ok) this.logger.info(kbResponseMessages.assistantDeleteSuccess, assistantId);
+          } catch (e: any) {
+            this.logger.warn(kbResponseMessages.assistantDeleteFailed, `${assistantId}: ${e?.message || e}`);
+          }
+        }
+
+        // Delete files from DB
+        await fileRepo?.delete({ KBUID });
+        // Delete assistant from DB
+        const assistantRepo = ds?.getRepository(KBAssistant);
+        await assistantRepo?.delete({ KBUID });
+        // Delete KB details from DB
+        await kbRepo?.delete({ KBUID });
+
+        return { KBUID };
+      },
+      KbDeleteResponseEnvelopeDto,
+      kbResponseMessages.deleteKbSuccess,
+      kbResponseCodes.deleteKbSuccess,
+      kbResponseMessages.deleteKbFailed,
       commonResponseCodes.InternalServerError,
       dto,
     );
