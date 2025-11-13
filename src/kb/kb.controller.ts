@@ -4,7 +4,7 @@ import { KbService } from './kb.service';
 import type { CustomJwtRequest } from '../common/types/request.types';
 import { AuthGuard } from '../common/guards/session.guard';
 import { apiVersion } from '../common/constants/version.constants';
-import { KbInitDto, KbInitResponseEnvelopeDto, KbStoreListDto, KbStoreListResponseEnvelopeDto, KbDeleteDto, KbDeleteResponseEnvelopeDto, KbFileUploadDto, KbFileUploadResponseEnvelopeDto, KbFileListDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateDto, KbAssistantCreateResponseEnvelopeDto, KbAssistantListDto, KbAssistantListResponseEnvelopeDto, KbAssistantUpdateDto, KbAssistantUpdateResponseEnvelopeDto } from './dto/kb.dto';
+import { KbInitDto, KbInitResponseEnvelopeDto, KbStoreListDto, KbStoreListResponseEnvelopeDto, KbDeleteDto, KbDeleteResponseEnvelopeDto, KbFileUploadDto, KbFileUploadResponseEnvelopeDto, KbFileListDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateDto, KbAssistantCreateResponseEnvelopeDto, KbAssistantListDto, KbAssistantListResponseEnvelopeDto, KbAssistantUpdateDto, KbAssistantUpdateResponseEnvelopeDto, KbAssistantDeleteResponseEnvelopeDto } from './dto/kb.dto';
 
 @Controller({ path: 'kb', version: apiVersion })
 export class KbController {
@@ -89,5 +89,13 @@ export class KbController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async assistantUpdate(@Req() req: CustomJwtRequest, @Body() dto: KbAssistantUpdateDto): Promise<KbAssistantUpdateResponseEnvelopeDto> {
     return this.service?.assistantUpdate(req, dto) as Promise<KbAssistantUpdateResponseEnvelopeDto>;
+  }
+
+  // Delete Assistant by AssistantId (DELETE)
+  @Delete('assistant/:id')
+  @UseGuards(AuthGuard)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async assistantDelete(@Req() req: CustomJwtRequest, @Query() dto: KbDeleteDto): Promise<KbAssistantDeleteResponseEnvelopeDto> {
+    return this.service?.assistantDelete(req, dto) as Promise<KbAssistantDeleteResponseEnvelopeDto>;
   }
 }

@@ -127,6 +127,12 @@ export interface KbAssistantUpdateResult {
   Instructions: string;
 }
 
+// Result for KB assistant delete
+export interface KbAssistantDeleteResult {
+  AssistantId: string;
+  Deleted: boolean;
+}
+
 // Input for linking files to a vector store
 export interface KbVectorStoreFileInput {
   VectorStoreId: string;

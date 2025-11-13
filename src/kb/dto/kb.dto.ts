@@ -4,7 +4,7 @@ import moment from 'moment';
 
 import { EvType } from '../../common/enums/evtype.enums';
 import { kbResponseCodes, kbResponseMessages } from '../constants/kb.constants';
-import type { KbStoreSummary, KbInitResult, KbDeleteResult, KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary, KbAssistantUpdateResult } from '../types/kb.types';
+import type { KbStoreSummary, KbInitResult, KbDeleteResult, KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary, KbAssistantUpdateResult, KbAssistantDeleteResult } from '../types/kb.types';
 import { KbStatus } from '../types/kb.types';
 
 export class KbInitDto {
@@ -20,7 +20,7 @@ export class KbInitDto {
 // Standard response envelope for KB init
 export class KbInitResponseEnvelopeDto {
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseMessages.kbInitSuccess)
+  @Transform(({ value }) => value ?? kbResponseMessages?.kbInitSuccess)
   Message!: string;
 
   @Expose()
@@ -28,7 +28,7 @@ export class KbInitResponseEnvelopeDto {
   TimeStamp!: string;
 
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseCodes.kbInitSuccess)
+  @Transform(({ value }) => value ?? kbResponseCodes?.kbInitSuccess)
   EvCode!: string;
 
   @Expose()
@@ -62,7 +62,7 @@ export class KbStoreListDto {
 // Response envelope DTO for KB store listing
 export class KbStoreListResponseEnvelopeDto {
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseMessages.storeListSuccess)
+  @Transform(({ value }) => value ?? kbResponseMessages?.storeListSuccess)
   Message!: string;
 
   @Expose()
@@ -70,7 +70,7 @@ export class KbStoreListResponseEnvelopeDto {
   TimeStamp!: string;
 
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseCodes.storeListSuccess)
+  @Transform(({ value }) => value ?? kbResponseCodes?.storeListSuccess)
   EvCode!: string;
 
   @Expose()
@@ -104,7 +104,7 @@ export class KbDeleteDto {
 // Response envelope for KB delete
 export class KbDeleteResponseEnvelopeDto {
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseMessages.deleteKbSuccess)
+  @Transform(({ value }) => value ?? kbResponseMessages?.deleteKbSuccess)
   Message!: string;
 
   @Expose()
@@ -112,7 +112,7 @@ export class KbDeleteResponseEnvelopeDto {
   TimeStamp!: string;
 
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseCodes.deleteKbSuccess)
+  @Transform(({ value }) => value ?? kbResponseCodes?.deleteKbSuccess)
   EvCode!: string;
 
   @Expose()
@@ -158,7 +158,7 @@ export class KbFileUploadDto {
 // Response envelope for KB file upload
 export class KbFileUploadResponseEnvelopeDto {
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseMessages.fileUploadSuccess)
+  @Transform(({ value }) => value ?? kbResponseMessages?.fileUploadSuccess)
   Message!: string;
 
   @Expose()
@@ -166,7 +166,7 @@ export class KbFileUploadResponseEnvelopeDto {
   TimeStamp!: string;
 
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseCodes.fileUploadSuccess)
+  @Transform(({ value }) => value ?? kbResponseCodes?.fileUploadSuccess)
   EvCode!: string;
 
   @Expose()
@@ -200,7 +200,7 @@ export class KbFileListDto {
 // Response envelope for KB file list
 export class KbFileListResponseEnvelopeDto {
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseMessages.fileListSuccess)
+  @Transform(({ value }) => value ?? kbResponseMessages?.fileListSuccess)
   Message!: string;
 
   @Expose()
@@ -208,7 +208,7 @@ export class KbFileListResponseEnvelopeDto {
   TimeStamp!: string;
 
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseCodes.fileListSuccess)
+  @Transform(({ value }) => value ?? kbResponseCodes?.fileListSuccess)
   EvCode!: string;
 
   @Expose()
@@ -250,7 +250,7 @@ export class KbVectorStoreFileDto {
 // Response envelope for POST /kb/vectorstore-file
 export class KbVectorStoreFileResponseEnvelopeDto {
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseMessages.vectorStoreFileSuccess)
+  @Transform(({ value }) => value ?? kbResponseMessages?.vectorStoreFileSuccess)
   Message!: string;
 
   @Expose()
@@ -258,7 +258,7 @@ export class KbVectorStoreFileResponseEnvelopeDto {
   TimeStamp!: string;
 
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseCodes.vectorStoreFileSuccess)
+  @Transform(({ value }) => value ?? kbResponseCodes?.vectorStoreFileSuccess)
   EvCode!: string;
 
   @Expose()
@@ -281,7 +281,7 @@ export class KbVectorStoreFileResponseEnvelopeDto {
 // Response envelope for DELETE /kb/file/:id
 export class KbFileDeleteResponseEnvelopeDto {
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseMessages.fileDeleteSuccess)
+  @Transform(({ value }) => value ?? kbResponseMessages?.fileDeleteSuccess)
   Message!: string;
 
   @Expose()
@@ -289,7 +289,7 @@ export class KbFileDeleteResponseEnvelopeDto {
   TimeStamp!: string;
 
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseCodes.fileDeleteSuccess)
+  @Transform(({ value }) => value ?? kbResponseCodes?.fileDeleteSuccess)
   EvCode!: string;
 
   @Expose()
@@ -307,6 +307,37 @@ export class KbFileDeleteResponseEnvelopeDto {
   @Expose()
   @Type(() => Object)
   Data!: KbFileDeleteResult;
+}
+
+// Response envelope for DELETE /kb/assistant/:id
+export class KbAssistantDeleteResponseEnvelopeDto {
+  @Expose()
+  @Transform(({ value }) => value ?? kbResponseMessages?.assistantDeleteSuccess)
+  Message!: string;
+
+  @Expose()
+  @Transform(({ value }) => value ?? moment().format('YYYY-MM-DD HH:mm:ss'))
+  TimeStamp!: string;
+
+  @Expose()
+  @Transform(({ value }) => value ?? kbResponseCodes?.assistantDeleteSuccess)
+  EvCode!: string;
+
+  @Expose()
+  @Transform(({ value }) => value ?? EvType.Success)
+  EvType!: EvType;
+
+  @Expose()
+  @Transform(({ value }) => (value != null ? String(value).trim() : ''))
+  ReqId?: string;
+
+  @Expose()
+  @Transform(({ value }) => (value != null ? String(value).trim() : ''))
+  ReqCode?: string;
+
+  @Expose()
+  @Type(() => Object)
+  Data!: KbAssistantDeleteResult;
 }
 
 // Request DTO for POST /kb/assistant (assistant creation)
@@ -335,7 +366,7 @@ export class KbAssistantCreateDto {
 // Response envelope for POST /kb/assistant
 export class KbAssistantCreateResponseEnvelopeDto {
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseMessages.assistantCreateSuccess)
+  @Transform(({ value }) => value ?? kbResponseMessages?.assistantCreateSuccess)
   Message!: string;
 
   @Expose()
@@ -343,7 +374,7 @@ export class KbAssistantCreateResponseEnvelopeDto {
   TimeStamp!: string;
 
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseCodes.assistantCreateSuccess)
+  @Transform(({ value }) => value ?? kbResponseCodes?.assistantCreateSuccess)
   EvCode!: string;
 
   @Expose()
@@ -393,7 +424,7 @@ export class KbAssistantUpdateDto {
 // Response envelope for PATCH /kb/assistant
 export class KbAssistantUpdateResponseEnvelopeDto {
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseMessages.assistantUpdateSuccess)
+  @Transform(({ value }) => value ?? kbResponseMessages?.assistantUpdateSuccess)
   Message!: string;
 
   @Expose()
@@ -401,7 +432,7 @@ export class KbAssistantUpdateResponseEnvelopeDto {
   TimeStamp!: string;
 
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseCodes.assistantUpdateSuccess)
+  @Transform(({ value }) => value ?? kbResponseCodes?.assistantUpdateSuccess)
   EvCode!: string;
 
   @Expose()
@@ -439,7 +470,7 @@ export class KbAssistantListDto {
 // Response envelope for GET /kb/assistant
 export class KbAssistantListResponseEnvelopeDto {
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseMessages.assistantListSuccess)
+  @Transform(({ value }) => value ?? kbResponseMessages?.assistantListSuccess)
   Message!: string;
 
   @Expose()
@@ -447,7 +478,7 @@ export class KbAssistantListResponseEnvelopeDto {
   TimeStamp!: string;
 
   @Expose()
-  @Transform(({ value }) => value ?? kbResponseCodes.assistantListSuccess)
+  @Transform(({ value }) => value ?? kbResponseCodes?.assistantListSuccess)
   EvCode!: string;
 
   @Expose()

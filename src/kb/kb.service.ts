@@ -14,9 +14,9 @@ import { KbPlatformSID, KbStatus } from './types/kb.types';
 import { kbResponseMessages, kbResponseCodes } from './constants/kb.constants';
 import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
 import type { KbInitResult, KbStoreSummary, KbDeleteResult } from './types/kb.types';
-import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateResponseEnvelopeDto, KbAssistantListResponseEnvelopeDto, KbAssistantUpdateResponseEnvelopeDto } from './dto/kb.dto';
+import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateResponseEnvelopeDto, KbAssistantListResponseEnvelopeDto, KbAssistantUpdateResponseEnvelopeDto, KbAssistantDeleteResponseEnvelopeDto } from './dto/kb.dto';
 import type { KbInitDto, KbStoreListDto, KbDeleteDto, KbFileUploadDto, KbFileListDto, KbVectorStoreFileDto, KbAssistantCreateDto, KbAssistantListDto, KbAssistantUpdateDto } from './dto/kb.dto';
-import type { KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary, KbAssistantUpdateResult } from './types/kb.types';
+import type { KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary, KbAssistantUpdateResult, KbAssistantDeleteResult } from './types/kb.types';
 
 @Injectable()
 export class KbService {
@@ -516,6 +516,42 @@ export class KbService {
       kbResponseMessages?.assistantUpdateSuccess,
       kbResponseCodes?.assistantUpdateSuccess,
       kbResponseMessages?.assistantUpdateFailed,
+      commonResponseCodes?.InternalServerError,
+      dto,
+    );
+  }
+
+  async assistantDelete(req: CustomJwtRequest, dto: KbDeleteDto) {
+    return this.execute<KbAssistantDeleteResult>(
+      req,
+      async ({ xplatform, apikey, tenantCode }) => {
+        const { id } = req.params as { id: string };
+        const ds: DataSource | null = this.tenantDb?.getTenantDataSource(tenantCode);
+        const assistantRepo = ds?.getRepository(KBAssistant);
+
+        // Find assistant by AssistantId nested inside XPRef JSON
+        const assistant = await assistantRepo?.createQueryBuilder('kbassistant')
+          .where("JSON_UNQUOTE(JSON_EXTRACT(kbassistant.XPRef, '$.AssistantId')) = :assistantId", { assistantId: id })
+          .getOne();
+
+        if (!assistant) {
+          this.logger.warn(kbResponseMessages?.assistantsNotFound, id);
+          throw new Error(`${kbResponseMessages?.assistantsNotFound}: ${id}`);
+        }
+
+        // Delete assistant from DB first
+        await assistantRepo?.delete({ Id: assistant?.Id });
+
+        // Delete assistant from platform via AI handler
+        const ops = this.kbHandler?.getOps(xplatform);
+        const responseResult = await ops?.AssistantDelete?.(xplatform, { APIKey: apikey }, id);
+
+        return { AssistantId: id, Deleted: !!responseResult };
+      },
+      KbAssistantDeleteResponseEnvelopeDto,
+      kbResponseMessages?.assistantDeleteSuccess,
+      kbResponseCodes?.assistantDeleteSuccess,
+      kbResponseMessages?.assistantDeleteFailed,
       commonResponseCodes?.InternalServerError,
       dto,
     );

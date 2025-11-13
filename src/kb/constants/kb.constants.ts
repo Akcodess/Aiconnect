@@ -30,8 +30,8 @@ export const kbResponseMessages = {
   fileDeleteFailed: 'KB File delete failed',
   vectorStoreDeleteSuccess: 'KB vector store deleted',
   vectorStoreDeleteFailed: 'KB vector store delete failed',
-  assistantDeleteSuccess: 'KB assistant deleted',
-  assistantDeleteFailed: 'KB assistant delete failed',
+  assistantDeleteSuccess: 'Assistant deleted successfully',
+  assistantDeleteFailed: 'KB Assistant delete failed',
   // Vector store file linking
   vectorStoreFileSuccess: 'KB VectorStore file mapped successfully',
   vectorStoreFileFailed: 'KB VectorStore file mapping failed',
@@ -57,6 +57,7 @@ export const kbResponseCodes = {
   fileUploadSuccess: 'KbFileUploadSuccess',
   fileDeleteSuccess: 'KbFileDeleteSuccess',
   deleteKbSuccess: 'DeleteKbSuccess',
+  assistantDeleteSuccess: 'AssistantDeleteSuccess',
   vectorStoreFileSuccess: 'VectorStoreFileSuccess',
   vectorStoreFileDeleteSuccess: 'VectorstoreFileDeleteSuccess',
   internalServerError: 'InternalServerError',
