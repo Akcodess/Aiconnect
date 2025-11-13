@@ -10,13 +10,13 @@ import KBStore from '../db/entities/kb-store.entity';
 import KBFile from '../db/entities/kb-file.entity';
 import KBAssistant from '../db/entities/kb-assistant.entity';
 import { KbAIHandlerService } from './ai-handler.service';
-import { KbPlatformSID } from './types/kb.types';
+import { KbPlatformSID, KbStatus } from './types/kb.types';
 import { kbResponseMessages, kbResponseCodes } from './constants/kb.constants';
 import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
 import type { KbInitResult, KbStoreSummary, KbDeleteResult } from './types/kb.types';
-import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateResponseEnvelopeDto, KbAssistantListResponseEnvelopeDto } from './dto/kb.dto';
-import type { KbInitDto, KbStoreListDto, KbDeleteDto, KbFileUploadDto, KbFileListDto, KbVectorStoreFileDto, KbAssistantCreateDto, KbAssistantListDto } from './dto/kb.dto';
-import type { KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary } from './types/kb.types';
+import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateResponseEnvelopeDto, KbAssistantListResponseEnvelopeDto, KbAssistantUpdateResponseEnvelopeDto } from './dto/kb.dto';
+import type { KbInitDto, KbStoreListDto, KbDeleteDto, KbFileUploadDto, KbFileListDto, KbVectorStoreFileDto, KbAssistantCreateDto, KbAssistantListDto, KbAssistantUpdateDto } from './dto/kb.dto';
+import type { KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary, KbAssistantUpdateResult } from './types/kb.types';
 
 @Injectable()
 export class KbService {
@@ -332,7 +332,7 @@ export class KbService {
           // Fallback to JSON_EXTRACT on XPRef to locate the file by FileId without relying on a new column type
           const file = await fileRepo?.createQueryBuilder('kbfile').where("JSON_UNQUOTE(JSON_EXTRACT(kbfile.XPRef, '$.FileId')) = :fileId", { fileId }).getOne();
 
-          const xpref = { ...(file?.XPRef || {}), FileId: fileId, Status: 'Active' };
+          const xpref = { ...(file?.XPRef || {}), FileId: fileId, Status: KbStatus?.Active };
           file!.XPRef = xpref;
           await fileRepo?.save(file!);
         }
@@ -373,7 +373,7 @@ export class KbService {
           // Fallback to JSON_EXTRACT on XPRef to locate the file by FileId without relying on a new column type
           const file = await fileRepo?.createQueryBuilder('kbfile').where("JSON_UNQUOTE(JSON_EXTRACT(kbfile.XPRef, '$.FileId')) = :fileId", { fileId }).getOne();
 
-          const xpref = { ...(file?.XPRef || {}), FileId: fileId, Status: 'Inactive' };
+          const xpref = { ...(file?.XPRef || {}), FileId: fileId, Status: KbStatus?.Inactive };
           file!.XPRef = xpref;
           await fileRepo?.save(file!);
         }
@@ -412,7 +412,7 @@ export class KbService {
         const existingAssistants = await assistantRepo?.find({ where: { KBUID } });
         for (const a of existingAssistants!) {
           const xpRef = a.XPRef ? { ...a.XPRef } : {};
-          xpRef.Status! = 'Inactive';
+          xpRef.Status! = KbStatus?.Inactive;
           await assistantRepo?.update({ Id: a.Id }, { XPRef: xpRef });
         }
 
@@ -467,6 +467,55 @@ export class KbService {
       kbResponseMessages?.assistantListSuccess,
       kbResponseCodes?.assistantListSuccess,
       kbResponseMessages?.assistantListFailed,
+      commonResponseCodes?.InternalServerError,
+      dto,
+    );
+  }
+
+  async assistantUpdate(req: CustomJwtRequest, dto: KbAssistantUpdateDto) {
+    return this.execute<KbAssistantUpdateResult | null>(
+      req,
+      async ({ xplatform, apikey, tenantCode }) => {
+        const { KBUID, AssistantId, Instructions, Status } = dto;
+
+        const ds: DataSource | null = this.tenantDb?.getTenantDataSource(tenantCode);
+
+        // If Status requested as Active, mark all assistants for KBUID as Inactive
+        if (Status === KbStatus?.Active) {
+          const assistantRepo = ds?.getRepository(KBAssistant);
+          const assistants = await assistantRepo?.find({ where: { KBUID } });
+          for (const a of assistants || []) {
+            const xpRef = a.XPRef ? { ...a.XPRef } : {};
+            xpRef.Status = KbStatus?.Inactive;
+            await assistantRepo?.update({ Id: a.Id }, { XPRef: xpRef });
+          }
+        }
+
+        // Update assistant via platform handler
+        const ops = this.kbHandler?.getOps(xplatform);
+        const responseResult = await ops?.AssistantUpdate?.(xplatform, { APIKey: apikey }, { AssistantId, Instructions }) ?? null;
+        if (!responseResult) {
+          this.logger.warn(kbResponseMessages?.assistantUpdateFailed, AssistantId);
+          throw new Error(kbResponseMessages?.assistantUpdateFailed);
+        }
+
+        // Update assistant row in DB by AssistantId in XPRef JSON
+        const assistantRepo = ds?.getRepository(KBAssistant);
+        const assistant = await assistantRepo?.createQueryBuilder('assistant').where("JSON_UNQUOTE(JSON_EXTRACT(assistant.XPRef, '$.AssistantId')) = :assistantId", { assistantId: AssistantId }).getOne();
+
+        if (assistant) {
+          assistant.Instructions = Instructions;
+          const xpref = { ...(assistant?.XPRef || {}), AssistantId, Status };
+          assistant.XPRef = xpref;
+          await assistantRepo?.save(assistant);
+        }
+
+        return responseResult;
+      },
+      KbAssistantUpdateResponseEnvelopeDto,
+      kbResponseMessages?.assistantUpdateSuccess,
+      kbResponseCodes?.assistantUpdateSuccess,
+      kbResponseMessages?.assistantUpdateFailed,
       commonResponseCodes?.InternalServerError,
       dto,
     );

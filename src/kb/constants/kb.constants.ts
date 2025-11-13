@@ -45,6 +45,9 @@ export const kbResponseMessages = {
   assistantListSuccess: 'KB Assistants fetched successfully',
   assistantListFailed: 'KB assistants fetch failed',
   assistantsNotFound: 'No assistants found for KBUID:',
+  // Assistant update
+  assistantUpdateSuccess: 'KB Assistant updated successfully',
+  assistantUpdateFailed: 'KB Assistant update setting failed',
 } as const;
 
 export const kbResponseCodes = {
@@ -59,6 +62,8 @@ export const kbResponseCodes = {
   internalServerError: 'InternalServerError',
   // Assistant creation
   assistantCreateSuccess: 'AssistantCreationSuccess',
+  // Assistant update
+  assistantUpdateSuccess: 'AssistantUpdateSuccess',
   // Assistant listing
   assistantListSuccess: 'GetAssistantsSuccess',
 } as const;

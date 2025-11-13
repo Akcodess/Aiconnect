@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { AiUtilService } from '../common/utils/ai.util';
 import { LoggingService } from '../common/utils/logging.util';
-import type { KbInitResult, KbHandlerCreds, KbHandlerOps, KbFileUploadInput, KbFileUploadResult, KbVectorStoreFileInput, KbVectorStoreFileResult, KbAssistantCreateInput, KbAssistantCreateResult } from './types/kb.types';
+import type { KbInitResult, KbHandlerCreds, KbHandlerOps, KbFileUploadInput, KbFileUploadResult, KbVectorStoreFileInput, KbVectorStoreFileResult, KbAssistantCreateInput, KbAssistantCreateResult, KbAssistantUpdateInput, KbAssistantUpdateResult } from './types/kb.types';
 import { kbResponseMessages } from './constants/kb.constants';
 
 @Injectable()
@@ -19,6 +19,7 @@ export class KbAIHandlerService {
       VectorStoreFileCreate: this.handleOpenAIVectorStoreFile.bind(this),
       VectorStoreFileDelete: this.handleOpenAIVectorStoreFileDelete.bind(this),
       AssistantCreate: this.handleOpenAIAssistantCreate.bind(this),
+      AssistantUpdate: this.handleOpenAIAssistantUpdate.bind(this),
     }
   };
 
@@ -69,16 +70,6 @@ export class KbAIHandlerService {
     }
   }
 
-  private async handleOpenAIAssistantCreate(_: string, creds: KbHandlerCreds, input: KbAssistantCreateInput): Promise<KbAssistantCreateResult | null> {
-    try {
-      const result = await this.aiUtil?.kbAssistantCreateOpenAI({ APIKey: creds?.APIKey!, ...input });
-      return result as KbAssistantCreateResult;
-    } catch (err: unknown) {
-      this.logger.error(kbResponseMessages.assistantCreateFailed, err instanceof Error ? err.message : String(err));
-      return null;
-    }
-  }
-
   private async handleOpenAIFileUpload(_: string, creds: KbHandlerCreds, input: KbFileUploadInput): Promise<KbFileUploadResult | null> {
     try {
       const result = await this.aiUtil?.kbFileUploadOpenAI({ APIKey: creds?.APIKey!, ...input });
@@ -105,6 +96,26 @@ export class KbAIHandlerService {
       return result as KbVectorStoreFileResult;
     } catch (err: unknown) {
       this.logger.error(kbResponseMessages?.vectorStoreFileDeleteFailed, err instanceof Error ? err.message : String(err));
+      return null;
+    }
+  }
+
+  private async handleOpenAIAssistantCreate(_: string, creds: KbHandlerCreds, input: KbAssistantCreateInput): Promise<KbAssistantCreateResult | null> {
+    try {
+      const result = await this.aiUtil?.kbAssistantCreateOpenAI({ APIKey: creds?.APIKey!, ...input });
+      return result as KbAssistantCreateResult;
+    } catch (err: unknown) {
+      this.logger.error(kbResponseMessages.assistantCreateFailed, err instanceof Error ? err.message : String(err));
+      return null;
+    }
+  }
+
+  private async handleOpenAIAssistantUpdate(_: string, creds: KbHandlerCreds, input: KbAssistantUpdateInput): Promise<KbAssistantUpdateResult | null> {
+    try {
+      const result = await this.aiUtil?.kbAssistantUpdateOpenAI({ APIKey: creds?.APIKey!, ...input });
+      return result as KbAssistantUpdateResult;
+    } catch (err: unknown) {
+      this.logger.error(kbResponseMessages?.assistantUpdateFailed, err instanceof Error ? err.message : String(err));
       return null;
     }
   }

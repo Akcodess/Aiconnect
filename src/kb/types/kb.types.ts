@@ -1,6 +1,12 @@
 // Platform SID values used to validate requests hitting KB endpoints
 export enum KbPlatformSID { KB = 'KB' }
 
+// Standard status for KB resources
+export enum KbStatus {
+  Active = 'Active',
+  Inactive = 'Inactive',
+}
+
 export interface KbInitResult {
   KBUID: string;
   XPlatformID: string;
@@ -28,6 +34,7 @@ export interface KbHandlerOps {
   VectorStoreDelete?: (platform: string, creds: KbHandlerCreds, vectorStoreId: string) => Promise<boolean>;
   AssistantDelete?: (platform: string, creds: KbHandlerCreds, assistantId: string) => Promise<boolean>;
   AssistantCreate?: (platform: string, creds: KbHandlerCreds, input: KbAssistantCreateInput) => Promise<KbAssistantCreateResult | null>;
+  AssistantUpdate?: (platform: string, creds: KbHandlerCreds, input: KbAssistantUpdateInput) => Promise<KbAssistantUpdateResult | null>;
   VectorStoreFileCreate?: (platform: string, creds: KbHandlerCreds, input: KbVectorStoreFileInput) => Promise<KbVectorStoreFileResult | null>;
   VectorStoreFileDelete?: (platform: string, creds: KbHandlerCreds, input: KbVectorStoreFileInput) => Promise<KbVectorStoreFileResult | null>;
 }
@@ -106,6 +113,18 @@ export interface KbAssistantCreateResult {
   Name: string;
   Instructions: string;
   XPRef: Record<string, any>;
+}
+
+// Input for KB assistant update
+export interface KbAssistantUpdateInput {
+  AssistantId: string;
+  Instructions: string;
+}
+
+// Result for KB assistant update
+export interface KbAssistantUpdateResult {
+  AssistantId: string;
+  Instructions: string;
 }
 
 // Input for linking files to a vector store
