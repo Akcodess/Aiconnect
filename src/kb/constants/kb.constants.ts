@@ -26,8 +26,8 @@ export const kbResponseMessages = {
   deleteKbStarted: 'KB delete started',
   deleteKbSuccess: 'KB deleted successfully',
   deleteKbFailed: 'KB delete failed',
-  fileDeleteSuccess: 'KB file deleted',
-  fileDeleteFailed: 'KB file delete failed',
+  fileDeleteSuccess: 'KB File deleted successfully',
+  fileDeleteFailed: 'KB File delete failed',
   vectorStoreDeleteSuccess: 'KB vector store deleted',
   vectorStoreDeleteFailed: 'KB vector store delete failed',
   assistantDeleteSuccess: 'KB assistant deleted',
@@ -39,6 +39,7 @@ export const kbResponseCodes = {
   storeListSuccess: 'GetKbSuccess',
   fileListSuccess: 'KbFileGetSuccess',
   fileUploadSuccess: 'KbFileUploadSuccess',
+  fileDeleteSuccess: 'KbFileDeleteSuccess',
   deleteKbSuccess: 'DeleteKbSuccess',
   internalServerError: 'InternalServerError',
 } as const;

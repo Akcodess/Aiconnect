@@ -71,3 +71,9 @@ export interface KbFileUploadResult {
 export interface KbFileUploadOpenAIParams extends KbFileUploadInput {
   APIKey: string;
 }
+
+// Result for KB file delete
+export interface KbFileDeleteResult {
+  FileId: string;
+  Deleted: boolean;
+}

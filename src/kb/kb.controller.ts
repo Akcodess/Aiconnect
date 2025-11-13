@@ -4,7 +4,7 @@ import { KbService } from './kb.service';
 import type { CustomJwtRequest } from '../common/types/request.types';
 import { AuthGuard } from '../common/guards/session.guard';
 import { apiVersion } from '../common/constants/version.constants';
-import { KbInitDto, KbInitResponseEnvelopeDto, KbStoreListDto, KbStoreListResponseEnvelopeDto, KbDeleteDto, KbDeleteResponseEnvelopeDto, KbFileUploadDto, KbFileUploadResponseEnvelopeDto, KbFileListDto, KbFileListResponseEnvelopeDto } from './dto/kb.dto';
+import { KbInitDto, KbInitResponseEnvelopeDto, KbStoreListDto, KbStoreListResponseEnvelopeDto, KbDeleteDto, KbDeleteResponseEnvelopeDto, KbFileUploadDto, KbFileUploadResponseEnvelopeDto, KbFileListDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto } from './dto/kb.dto';
 
 @Controller({ path: 'kb', version: apiVersion })
 export class KbController {
@@ -42,5 +42,12 @@ export class KbController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async getFiles(@Req() req: CustomJwtRequest, @Query() dto: KbFileListDto): Promise<KbFileListResponseEnvelopeDto> {
     return this.service?.getFiles(req, dto) as Promise<KbFileListResponseEnvelopeDto>;
+  }
+
+  @Delete('file/:id')
+  @UseGuards(AuthGuard)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async deleteFile(@Req() req: CustomJwtRequest, @Query() dto: KbDeleteDto): Promise<KbFileDeleteResponseEnvelopeDto> {
+    return this.service?.deleteFile(req, dto) as Promise<KbFileDeleteResponseEnvelopeDto>;
   }
 }

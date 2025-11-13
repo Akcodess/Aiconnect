@@ -14,9 +14,9 @@ import { KbPlatformSID } from './types/kb.types';
 import { kbResponseMessages, kbResponseCodes } from './constants/kb.constants';
 import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
 import type { KbInitResult, KbStoreSummary, KbDeleteResult } from './types/kb.types';
-import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto, KbFileListResponseEnvelopeDto } from './dto/kb.dto';
+import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto } from './dto/kb.dto';
 import type { KbInitDto, KbStoreListDto, KbDeleteDto, KbFileUploadDto, KbFileListDto } from './dto/kb.dto';
-import type { KbFileUploadResult, KbFileSummary } from './types/kb.types';
+import type { KbFileUploadResult, KbFileSummary, KbFileDeleteResult } from './types/kb.types';
 
 @Injectable()
 export class KbService {
@@ -270,6 +270,38 @@ export class KbService {
       kbResponseMessages.fileListSuccess,
       kbResponseCodes.fileListSuccess,
       kbResponseMessages.fileListFailed,
+      commonResponseCodes.InternalServerError,
+      dto,
+    );
+  }
+
+  async deleteFile(req: CustomJwtRequest, dto: KbDeleteDto) {
+    return this.execute<KbFileDeleteResult>(
+      req,
+      async ({ xplatform, apikey, tenantCode }) => {
+        const { id } = req.params as { id: string };
+        const ds: DataSource | null = this.tenantDb?.getTenantDataSource(tenantCode);
+        const repo = ds?.getRepository(KBFile);
+
+        // Find the file by FileId nested in XPRef JSON
+        const file = await repo?.createQueryBuilder('kbfile').where("JSON_UNQUOTE(JSON_EXTRACT(kbfile.XPRef, '$.FileId')) = :fileId", { fileId: id }).getOne();
+
+        if (!file) {
+          this.logger.warn(kbResponseMessages.kbFileNotFound, id);
+          throw new Error(kbResponseMessages.kbFileNotFound);
+        }
+        // Delete the file row from DB first
+        await repo?.delete({ Id: file?.Id });
+        // Delete the file from the platform via AI handler
+        const ops = this.kbHandler?.getOps(xplatform);
+        const ok = await ops?.KbFileDelete?.(xplatform, { APIKey: apikey }, id);
+
+        return { FileId: id, Deleted: !!ok };
+      },
+      KbFileDeleteResponseEnvelopeDto,
+      kbResponseMessages.fileDeleteSuccess,
+      kbResponseCodes.fileDeleteSuccess,
+      kbResponseMessages.fileDeleteFailed,
       commonResponseCodes.InternalServerError,
       dto,
     );
