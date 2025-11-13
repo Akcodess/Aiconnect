@@ -27,6 +27,7 @@ export interface KbHandlerOps {
   KbFileDelete?: (platform: string, creds: KbHandlerCreds, fileId: string) => Promise<boolean>;
   VectorStoreDelete?: (platform: string, creds: KbHandlerCreds, vectorStoreId: string) => Promise<boolean>;
   AssistantDelete?: (platform: string, creds: KbHandlerCreds, assistantId: string) => Promise<boolean>;
+  AssistantCreate?: (platform: string, creds: KbHandlerCreds, input: KbAssistantCreateInput) => Promise<KbAssistantCreateResult | null>;
   VectorStoreFileCreate?: (platform: string, creds: KbHandlerCreds, input: KbVectorStoreFileInput) => Promise<KbVectorStoreFileResult | null>;
   VectorStoreFileDelete?: (platform: string, creds: KbHandlerCreds, input: KbVectorStoreFileInput) => Promise<KbVectorStoreFileResult | null>;
 }
@@ -78,6 +79,23 @@ export interface KbFileUploadOpenAIParams extends KbFileUploadInput {
 export interface KbFileDeleteResult {
   FileId: string;
   Deleted: boolean;
+}
+
+// Input for KB assistant creation
+export interface KbAssistantCreateInput {
+  KBUID: string;
+  Name: string;
+  Instructions: string;
+  VectorStoreId: string;
+}
+
+// Result for KB assistant creation
+export interface KbAssistantCreateResult {
+  Code: string;
+  KBUID: string;
+  Name: string;
+  Instructions: string;
+  XPRef: Record<string, any>;
 }
 
 // Input for linking files to a vector store

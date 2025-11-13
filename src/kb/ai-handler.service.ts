@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { AiUtilService } from '../common/utils/ai.util';
 import { LoggingService } from '../common/utils/logging.util';
-import type { KbInitResult, KbHandlerCreds, KbHandlerOps, KbFileUploadInput, KbFileUploadResult, KbVectorStoreFileInput, KbVectorStoreFileResult } from './types/kb.types';
+import type { KbInitResult, KbHandlerCreds, KbHandlerOps, KbFileUploadInput, KbFileUploadResult, KbVectorStoreFileInput, KbVectorStoreFileResult, KbAssistantCreateInput, KbAssistantCreateResult } from './types/kb.types';
 import { kbResponseMessages } from './constants/kb.constants';
 
 @Injectable()
@@ -18,6 +18,7 @@ export class KbAIHandlerService {
       AssistantDelete: this.handleOpenAIAssistantDelete.bind(this),
       VectorStoreFileCreate: this.handleOpenAIVectorStoreFile.bind(this),
       VectorStoreFileDelete: this.handleOpenAIVectorStoreFileDelete.bind(this),
+      AssistantCreate: this.handleOpenAIAssistantCreate.bind(this),
     }
   };
 
@@ -65,6 +66,16 @@ export class KbAIHandlerService {
     } catch (err: unknown) {
       this.logger.warn(kbResponseMessages.assistantDeleteFailed, err instanceof Error ? err.message : String(err));
       return false;
+    }
+  }
+
+  private async handleOpenAIAssistantCreate(_: string, creds: KbHandlerCreds, input: KbAssistantCreateInput): Promise<KbAssistantCreateResult | null> {
+    try {
+      const result = await this.aiUtil?.kbAssistantCreateOpenAI({ APIKey: creds?.APIKey!, ...input });
+      return result as KbAssistantCreateResult;
+    } catch (err: unknown) {
+      this.logger.error(kbResponseMessages.assistantCreateFailed, err instanceof Error ? err.message : String(err));
+      return null;
     }
   }
 

@@ -14,9 +14,9 @@ import { KbPlatformSID } from './types/kb.types';
 import { kbResponseMessages, kbResponseCodes } from './constants/kb.constants';
 import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
 import type { KbInitResult, KbStoreSummary, KbDeleteResult } from './types/kb.types';
-import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileResponseEnvelopeDto } from './dto/kb.dto';
-import type { KbInitDto, KbStoreListDto, KbDeleteDto, KbFileUploadDto, KbFileListDto, KbVectorStoreFileDto } from './dto/kb.dto';
-import type { KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult } from './types/kb.types';
+import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateResponseEnvelopeDto } from './dto/kb.dto';
+import type { KbInitDto, KbStoreListDto, KbDeleteDto, KbFileUploadDto, KbFileListDto, KbVectorStoreFileDto, KbAssistantCreateDto } from './dto/kb.dto';
+import type { KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult } from './types/kb.types';
 
 @Injectable()
 export class KbService {
@@ -385,6 +385,53 @@ export class KbService {
       kbResponseCodes.vectorStoreFileDeleteSuccess,
       kbResponseMessages.vectorStoreFileDeleteFailed,
       commonResponseCodes.InternalServerError,
+      dto,
+    );
+  }
+
+  async assistantCreate(req: CustomJwtRequest, dto: KbAssistantCreateDto) {
+    return this.execute<KbAssistantCreateResult | null>(
+      req,
+      async ({ xplatform, apikey, tenantCode }) => {
+        const { KBUID, Name, Instructions } = dto;
+
+        const ds: DataSource | null = this.tenantDb?.getTenantDataSource(tenantCode);
+        const tenantInfo = this.tenantDb?.getTenantInfo(tenantCode);
+
+        // Ensure KB exists and get VectorStoreId
+        const kbRepo = ds?.getRepository(KBStore);
+        const kb = await kbRepo?.findOne({ where: { KBUID } });
+        if (!kb) {
+          this.logger.warn(kbResponseMessages.kbNotFound, KBUID);
+          throw new Error(kbResponseMessages.kbNotFound);
+        }
+        const vectorStoreId: string | undefined = kb?.XPRef?.VectorStoreId;
+
+        // Mark existing assistants as Inactive
+        const assistantRepo = ds?.getRepository(KBAssistant);
+        const existingAssistants = await assistantRepo?.find({ where: { KBUID } });
+        for (const a of existingAssistants!) {
+          const xpRef = a.XPRef ? { ...a.XPRef } : {};
+          xpRef.Status! = 'Inactive';
+          await assistantRepo?.update({ Id: a.Id }, { XPRef: xpRef });
+        }
+
+        // Call platform-specific assistant creation
+        const ops = this.kbHandler.getOps(xplatform);
+        const responseResult = await ops?.AssistantCreate?.(xplatform, { APIKey: apikey }, { KBUID, Name, Instructions, VectorStoreId: vectorStoreId! }) ?? null;
+
+        // Persist assistant row
+        const toSave = assistantRepo?.create({ ...responseResult, CreatedBy: Number(tenantInfo?.Id) });
+        await assistantRepo?.save(toSave!);
+
+        this.logger.info(JSON.stringify(toSave));
+        return responseResult;
+      },
+      KbAssistantCreateResponseEnvelopeDto,
+      kbResponseMessages?.assistantCreateSuccess,
+      kbResponseCodes?.assistantCreateSuccess,
+      kbResponseMessages?.assistantCreateFailed,
+      commonResponseCodes?.InternalServerError,
       dto,
     );
   }

@@ -10,7 +10,7 @@ import { commonResponseMessages } from '../constants/common.constants';
 import { v4 as uuidv4 } from 'uuid';
 import { kbResponseMessages } from '../../kb/constants/kb.constants';
 import type { KbFileUploadOpenAIParams, KbFileUploadResult } from '../../kb/types/kb.types';
-import type { KbVectorStoreFileInput, KbVectorStoreFileResult } from '../../kb/types/kb.types';
+import type { KbVectorStoreFileInput, KbVectorStoreFileResult, KbAssistantCreateInput, KbAssistantCreateResult } from '../../kb/types/kb.types';
 import { utilMessages } from '../constants/util.contant';
 
 @Injectable()
@@ -73,11 +73,7 @@ export class AiUtilService {
       const vectorStore = await openai.vectorStores.create({ name: `kb-vector-${kbuid}` });
       const vectorStoreId = vectorStore.id;
 
-      return {
-        KBUID: kbuid,
-        XPlatformID: XPlatformID,
-        XPRef: { VectorStoreId: vectorStoreId },
-      };
+      return { KBUID: kbuid, XPlatformID: XPlatformID, XPRef: { VectorStoreId: vectorStoreId }};
     } catch (error: any) {
       this.logger.error(kbResponseMessages.kbInitFailed, error?.message || error);
       return null;
@@ -145,12 +141,7 @@ export class AiUtilService {
       // Clean up local temp file
       fs.unlinkSync(localFilePath);
 
-      return {
-        KBUID,
-        FileName,
-        FileURL,
-        XPRef: { FileId: upload.id, Status: 'Inactive' },
-      } as KbFileUploadResult;
+      return { KBUID, FileName, FileURL, XPRef: { FileId: upload.id, Status: 'Inactive' } } as KbFileUploadResult;
     } catch (error: any) {
       this.logger.error(kbResponseMessages.fileUploadFailed, error?.message || error);
       return null;
@@ -181,6 +172,29 @@ export class AiUtilService {
       return { VectorStoreId, FileIds };
     } catch (error: any) {
       this.logger.error(kbResponseMessages?.vectorStoreFileDeleteFailed, error?.message || error);
+      return null;
+    }
+  }
+
+  // Create an assistant in OpenAI and attach vector store via file_search tool
+  async kbAssistantCreateOpenAI({ APIKey, VectorStoreId, Name, Instructions, KBUID }: { APIKey: string } & KbAssistantCreateInput): Promise<KbAssistantCreateResult | null> {
+    const openai = new OpenAI({ apiKey: APIKey });
+    try {
+      const assistant = await (openai as any)?.assistants?.create?.({
+        name: Name,
+        instructions: Instructions,
+        model: process.env.OPENAI_MODEL!,
+        tools: [{ type: 'file_search' }],
+        tool_resources: {
+          file_search: {
+            vector_store_ids: [VectorStoreId!]
+          }
+        }
+      });
+
+      return { Code: Math.random().toString(36).substring(2, 15), KBUID, Name, Instructions, XPRef: { AssistantId: assistant?.id, Status: 'Active' } } as KbAssistantCreateResult;
+    } catch (error: any) {
+      this.logger.error(kbResponseMessages.assistantCreateFailed, error?.message || error);
       return null;
     }
   }
