@@ -14,9 +14,9 @@ import { KbPlatformSID } from './types/kb.types';
 import { kbResponseMessages, kbResponseCodes } from './constants/kb.constants';
 import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
 import type { KbInitResult, KbStoreSummary, KbDeleteResult } from './types/kb.types';
-import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto } from './dto/kb.dto';
-import type { KbInitDto, KbStoreListDto, KbDeleteDto, KbFileUploadDto, KbFileListDto } from './dto/kb.dto';
-import type { KbFileUploadResult, KbFileSummary, KbFileDeleteResult } from './types/kb.types';
+import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileResponseEnvelopeDto } from './dto/kb.dto';
+import type { KbInitDto, KbStoreListDto, KbDeleteDto, KbFileUploadDto, KbFileListDto, KbVectorStoreFileDto } from './dto/kb.dto';
+import type { KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult } from './types/kb.types';
 
 @Injectable()
 export class KbService {
@@ -302,6 +302,47 @@ export class KbService {
       kbResponseMessages.fileDeleteSuccess,
       kbResponseCodes.fileDeleteSuccess,
       kbResponseMessages.fileDeleteFailed,
+      commonResponseCodes.InternalServerError,
+      dto,
+    );
+  }
+
+  async vectorStoreFile(req: CustomJwtRequest, dto: KbVectorStoreFileDto) {
+    return this.execute<KbVectorStoreFileResult>(
+      req,
+      async ({ xplatform, apikey, tenantCode }) => {
+        const { KBUID, FileIds } = req.body as { KBUID: string; FileIds: string[] };
+        const ds: DataSource | null = this.tenantDb.getTenantDataSource(tenantCode);
+
+        // Find vector store for KBUID
+        const kbRepo = ds?.getRepository(KBStore);
+        const kb = await kbRepo?.findOne({ where: { KBUID } });
+        if (!kb) {
+          this.logger.warn(kbResponseMessages.kbNotFound, KBUID);
+          throw new Error(kbResponseMessages.kbNotFound);
+        }
+
+        // Link files to vector store via AI handler
+        const ops = this.kbHandler?.getOps(xplatform);
+        const result = await ops?.VectorStoreFile?.(xplatform, { APIKey: apikey }, { VectorStoreId: kb?.XPRef?.VectorStoreId, FileIds });
+
+        // Update status of KBFile to Active
+        const fileRepo = ds?.getRepository(KBFile);
+        for (const fileId of FileIds) {
+          // Fallback to JSON_EXTRACT on XPRef to locate the file by FileId without relying on a new column type
+          const file = await fileRepo?.createQueryBuilder('kbfile').where("JSON_UNQUOTE(JSON_EXTRACT(kbfile.XPRef, '$.FileId')) = :fileId", { fileId }).getOne();
+
+          const xpref = { ...(file?.XPRef || {}), FileId: fileId, Status: 'Active' };
+          file!.XPRef = xpref;
+          await fileRepo?.save(file!);
+        }
+
+        return (result ?? { VectorStoreId: kb?.XPRef?.VectorStoreId, FileIds });
+      },
+      KbVectorStoreFileResponseEnvelopeDto,
+      kbResponseMessages.vectorStoreFileSuccess,
+      kbResponseCodes.vectorStoreFileSuccess,
+      kbResponseMessages.vectorStoreFileFailed,
       commonResponseCodes.InternalServerError,
       dto,
     );

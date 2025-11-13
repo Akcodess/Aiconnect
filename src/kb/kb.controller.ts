@@ -4,7 +4,7 @@ import { KbService } from './kb.service';
 import type { CustomJwtRequest } from '../common/types/request.types';
 import { AuthGuard } from '../common/guards/session.guard';
 import { apiVersion } from '../common/constants/version.constants';
-import { KbInitDto, KbInitResponseEnvelopeDto, KbStoreListDto, KbStoreListResponseEnvelopeDto, KbDeleteDto, KbDeleteResponseEnvelopeDto, KbFileUploadDto, KbFileUploadResponseEnvelopeDto, KbFileListDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto } from './dto/kb.dto';
+import { KbInitDto, KbInitResponseEnvelopeDto, KbStoreListDto, KbStoreListResponseEnvelopeDto, KbDeleteDto, KbDeleteResponseEnvelopeDto, KbFileUploadDto, KbFileUploadResponseEnvelopeDto, KbFileListDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileDto, KbVectorStoreFileResponseEnvelopeDto } from './dto/kb.dto';
 
 @Controller({ path: 'kb', version: apiVersion })
 export class KbController {
@@ -49,5 +49,12 @@ export class KbController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async deleteFile(@Req() req: CustomJwtRequest, @Query() dto: KbDeleteDto): Promise<KbFileDeleteResponseEnvelopeDto> {
     return this.service?.deleteFile(req, dto) as Promise<KbFileDeleteResponseEnvelopeDto>;
+  }
+
+  @Post('vectorstore-file')
+  @UseGuards(AuthGuard)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async vectorStoreFile(@Req() req: CustomJwtRequest, @Body() dto: KbVectorStoreFileDto): Promise<KbVectorStoreFileResponseEnvelopeDto> {
+    return this.service?.vectorStoreFile(req, dto) as Promise<KbVectorStoreFileResponseEnvelopeDto>;
   }
 }

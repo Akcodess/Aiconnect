@@ -10,6 +10,7 @@ import { commonResponseMessages } from '../constants/common.constants';
 import { v4 as uuidv4 } from 'uuid';
 import { kbResponseMessages } from '../../kb/constants/kb.constants';
 import type { KbFileUploadOpenAIParams, KbFileUploadResult } from '../../kb/types/kb.types';
+import type { KbVectorStoreFileInput, KbVectorStoreFileResult } from '../../kb/types/kb.types';
 import { utilMessages } from '../constants/util.contant';
 
 @Injectable()
@@ -63,16 +64,13 @@ export class AiUtilService {
 
 
   //KB AI Handler
-
   // Initialize a KB for OpenAI by creating a Vector Store and returning KBUID + XPRef meta
   async kbInitOpenAI({ APIKey, XPlatformID }: { APIKey: string; XPlatformID: string }): Promise<any> {
     const openai = new OpenAI({ apiKey: APIKey });
 
     try {
       const kbuid = uuidv4();
-      const vectorStore = await openai.vectorStores.create({
-        name: `kb-vector-${kbuid}`,
-      });
+      const vectorStore = await openai.vectorStores.create({ name: `kb-vector-${kbuid}` });
       const vectorStoreId = vectorStore.id;
 
       return {
@@ -155,6 +153,20 @@ export class AiUtilService {
       } as KbFileUploadResult;
     } catch (error: any) {
       this.logger.error(kbResponseMessages.fileUploadFailed, error?.message || error);
+      return null;
+    }
+  }
+
+  // Link uploaded files to a Vector Store in OpenAI
+  async kbVectorStoreFileOpenAI({ APIKey, VectorStoreId, FileIds }: { APIKey: string } & KbVectorStoreFileInput): Promise<KbVectorStoreFileResult | null> {
+    const openai = new OpenAI({ apiKey: APIKey });
+    try {
+      for (const fileId of FileIds) {
+        await openai?.vectorStores?.files?.create?.(VectorStoreId!, { file_id: fileId });
+      }
+      return { VectorStoreId, FileIds };
+    } catch (error: any) {
+      this.logger.error(kbResponseMessages.vectorStoreFileFailed, error?.message || error);
       return null;
     }
   }

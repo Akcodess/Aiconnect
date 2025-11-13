@@ -70,7 +70,7 @@ export class TextToSpeechAIHandlerService {
 
       const validGenders = process.env.GOOGLECLOUD_SSML_GENDERS!;
       const gender = validGenders.includes(VoiceModel as any) ? VoiceModel : 'NEUTRAL';
-      const [response] = await client.synthesizeSpeech({ input: { text: normalizedMessage }, voice: { languageCode: LanguageCode || 'en-US', ssmlGender: gender as any }, audioConfig: { audioEncoding: (process.env.AUDIO_EXT as any)?.toUpperCase(), speakingRate: parseFloat(SpeakingRate || '1.0') } });
+      const [response] = await client?.synthesizeSpeech({ input: { text: normalizedMessage }, voice: { languageCode: LanguageCode || 'en-US', ssmlGender: gender as any }, audioConfig: { audioEncoding: (process.env.AUDIO_EXT as any)?.toUpperCase(), speakingRate: parseFloat(SpeakingRate || '1.0') } });
       return response.audioContent || null;
     } catch (err: any) {
       this.logger.error(ttsResponseMessages?.GoogleCloudHandlerError, err.message);
