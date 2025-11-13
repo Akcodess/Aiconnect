@@ -16,7 +16,8 @@ export class KbAIHandlerService {
       KbFileDelete: this.handleOpenAIFileDelete.bind(this),
       VectorStoreDelete: this.handleOpenAIVectorDelete.bind(this),
       AssistantDelete: this.handleOpenAIAssistantDelete.bind(this),
-      VectorStoreFile: this.handleOpenAIVectorStoreFile.bind(this),
+      VectorStoreFileCreate: this.handleOpenAIVectorStoreFile.bind(this),
+      VectorStoreFileDelete: this.handleOpenAIVectorStoreFileDelete.bind(this),
     }
   };
 
@@ -82,7 +83,17 @@ export class KbAIHandlerService {
       const result = await this.aiUtil?.kbVectorStoreFileOpenAI({ APIKey: creds?.APIKey!, ...input });
       return result as KbVectorStoreFileResult;
     } catch (err: unknown) {
-      this.logger.error(kbResponseMessages.vectorStoreFileFailed, err instanceof Error ? err.message : String(err));
+      this.logger.error(kbResponseMessages?.vectorStoreFileFailed, err instanceof Error ? err.message : String(err));
+      return null;
+    }
+  }
+
+  private async handleOpenAIVectorStoreFileDelete(_: string, creds: KbHandlerCreds, input: KbVectorStoreFileInput): Promise<KbVectorStoreFileResult | null> {
+    try {
+      const result = await this.aiUtil?.kbVectorStoreFileDeleteOpenAI({ APIKey: creds?.APIKey!, ...input });
+      return result as KbVectorStoreFileResult;
+    } catch (err: unknown) {
+      this.logger.error(kbResponseMessages?.vectorStoreFileDeleteFailed, err instanceof Error ? err.message : String(err));
       return null;
     }
   }

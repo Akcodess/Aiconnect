@@ -27,7 +27,8 @@ export interface KbHandlerOps {
   KbFileDelete?: (platform: string, creds: KbHandlerCreds, fileId: string) => Promise<boolean>;
   VectorStoreDelete?: (platform: string, creds: KbHandlerCreds, vectorStoreId: string) => Promise<boolean>;
   AssistantDelete?: (platform: string, creds: KbHandlerCreds, assistantId: string) => Promise<boolean>;
-  VectorStoreFile?: (platform: string, creds: KbHandlerCreds, input: KbVectorStoreFileInput) => Promise<KbVectorStoreFileResult | null>;
+  VectorStoreFileCreate?: (platform: string, creds: KbHandlerCreds, input: KbVectorStoreFileInput) => Promise<KbVectorStoreFileResult | null>;
+  VectorStoreFileDelete?: (platform: string, creds: KbHandlerCreds, input: KbVectorStoreFileInput) => Promise<KbVectorStoreFileResult | null>;
 }
 
 export interface KbStoreSummary {

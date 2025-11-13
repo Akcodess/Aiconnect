@@ -166,7 +166,21 @@ export class AiUtilService {
       }
       return { VectorStoreId, FileIds };
     } catch (error: any) {
-      this.logger.error(kbResponseMessages.vectorStoreFileFailed, error?.message || error);
+      this.logger.error(kbResponseMessages?.vectorStoreFileFailed, error?.message || error);
+      return null;
+    }
+  }
+
+  // Delete files from a Vector Store in OpenAI
+  async kbVectorStoreFileDeleteOpenAI({ APIKey, VectorStoreId, FileIds }: { APIKey: string } & KbVectorStoreFileInput): Promise<KbVectorStoreFileResult | null> {
+    const openai = new OpenAI({ apiKey: APIKey });
+    try {
+      for (const fileId of FileIds) {
+        await openai?.vectorStores?.files?.delete?.(fileId, { vector_store_id: VectorStoreId! });
+      }
+      return { VectorStoreId, FileIds };
+    } catch (error: any) {
+      this.logger.error(kbResponseMessages?.vectorStoreFileDeleteFailed, error?.message || error);
       return null;
     }
   }

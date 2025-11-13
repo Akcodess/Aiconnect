@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Get, Delete, UseGuards, UsePipes, ValidationPipe, Req, Query } from '@nestjs/common';
+import { Body, Controller, Post, Get, Delete, Patch, UseGuards, UsePipes, ValidationPipe, Req, Query } from '@nestjs/common';
 
 import { KbService } from './kb.service';
 import type { CustomJwtRequest } from '../common/types/request.types';
@@ -51,10 +51,19 @@ export class KbController {
     return this.service?.deleteFile(req, dto) as Promise<KbFileDeleteResponseEnvelopeDto>;
   }
 
+  // Create/link files to a vector store (POST)
   @Post('vectorstore-file')
   @UseGuards(AuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
   async vectorStoreFile(@Req() req: CustomJwtRequest, @Body() dto: KbVectorStoreFileDto): Promise<KbVectorStoreFileResponseEnvelopeDto> {
-    return this.service?.vectorStoreFile(req, dto) as Promise<KbVectorStoreFileResponseEnvelopeDto>;
+    return this.service?.vectorStoreFileCreate(req, dto) as Promise<KbVectorStoreFileResponseEnvelopeDto>;
+  }
+
+  // Delete/unlink files from a vector store (PATCH)
+  @Patch('vectorstore-file')
+  @UseGuards(AuthGuard)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async vectorStoreFileDelete(@Req() req: CustomJwtRequest, @Body() dto: KbVectorStoreFileDto): Promise<KbVectorStoreFileResponseEnvelopeDto> {
+    return this.service?.vectorStoreFileDelete(req, dto) as Promise<KbVectorStoreFileResponseEnvelopeDto>;
   }
 }

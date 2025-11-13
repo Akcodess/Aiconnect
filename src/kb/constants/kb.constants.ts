@@ -35,6 +35,9 @@ export const kbResponseMessages = {
   // Vector store file linking
   vectorStoreFileSuccess: 'KB VectorStore file mapped successfully',
   vectorStoreFileFailed: 'KB VectorStore file mapping failed',
+  // Vector store file delete
+  vectorStoreFileDeleteSuccess: 'KB VectorStore file mapping deleted successfully',
+  vectorStoreFileDeleteFailed: 'KB VectorStore file mapping delete failed',
 } as const;
 
 export const kbResponseCodes = {
@@ -45,5 +48,6 @@ export const kbResponseCodes = {
   fileDeleteSuccess: 'KbFileDeleteSuccess',
   deleteKbSuccess: 'DeleteKbSuccess',
   vectorStoreFileSuccess: 'VectorStoreFileSuccess',
+  vectorStoreFileDeleteSuccess: 'VectorstoreFileDeleteSuccess',
   internalServerError: 'InternalServerError',
 } as const;
