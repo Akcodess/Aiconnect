@@ -4,7 +4,7 @@ import { KbService } from './kb.service';
 import type { CustomJwtRequest } from '../common/types/request.types';
 import { AuthGuard } from '../common/guards/session.guard';
 import { apiVersion } from '../common/constants/version.constants';
-import { KbInitDto, KbInitResponseEnvelopeDto, KbStoreListDto, KbStoreListResponseEnvelopeDto, KbDeleteDto, KbDeleteResponseEnvelopeDto, KbFileUploadDto, KbFileUploadResponseEnvelopeDto, KbFileListDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateDto, KbAssistantCreateResponseEnvelopeDto } from './dto/kb.dto';
+import { KbInitDto, KbInitResponseEnvelopeDto, KbStoreListDto, KbStoreListResponseEnvelopeDto, KbDeleteDto, KbDeleteResponseEnvelopeDto, KbFileUploadDto, KbFileUploadResponseEnvelopeDto, KbFileListDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateDto, KbAssistantCreateResponseEnvelopeDto, KbAssistantListDto, KbAssistantListResponseEnvelopeDto } from './dto/kb.dto';
 
 @Controller({ path: 'kb', version: apiVersion })
 export class KbController {
@@ -73,5 +73,13 @@ export class KbController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async assistantCreate(@Req() req: CustomJwtRequest, @Body() dto: KbAssistantCreateDto): Promise<KbAssistantCreateResponseEnvelopeDto> {
     return this.service?.assistantCreate(req, dto) as Promise<KbAssistantCreateResponseEnvelopeDto>;
+  }
+
+  // Get Assistants for a KB (GET)
+  @Get('assistant')
+  @UseGuards(AuthGuard)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async getAssistants(@Req() req: CustomJwtRequest, @Query() dto: KbAssistantListDto): Promise<KbAssistantListResponseEnvelopeDto> {
+    return this.service?.getAssistants(req, dto) as Promise<KbAssistantListResponseEnvelopeDto>;
   }
 }

@@ -51,6 +51,16 @@ export interface KbFileSummary {
   EditedOn: Date;
 }
 
+export interface KbAssistantSummary {
+  Id: number;
+  KBUID: string;
+  Name: string;
+  Instructions: string;
+  XPRef: Record<string, any>;
+  CreatedOn: Date;
+  EditedOn: Date;
+}
+
 export interface KbDeleteResult {
   KBUID: string;
 }

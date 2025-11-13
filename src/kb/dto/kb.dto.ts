@@ -4,7 +4,7 @@ import moment from 'moment';
 
 import { EvType } from '../../common/enums/evtype.enums';
 import { kbResponseCodes, kbResponseMessages } from '../constants/kb.constants';
-import type { KbStoreSummary, KbInitResult, KbDeleteResult, KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult } from '../types/kb.types';
+import type { KbStoreSummary, KbInitResult, KbDeleteResult, KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary } from '../types/kb.types';
 
 export class KbInitDto {
   @IsString()
@@ -360,4 +360,50 @@ export class KbAssistantCreateResponseEnvelopeDto {
   @Expose()
   @Type(() => Object)
   Data!: KbAssistantCreateResult;
+}
+
+// Request DTO for GET /kb/assistant (assistant list)
+export class KbAssistantListDto {
+  @IsString()
+  @IsNotEmpty()
+  ReqId!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  ReqCode!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  KBUID!: string;
+}
+
+// Response envelope for GET /kb/assistant
+export class KbAssistantListResponseEnvelopeDto {
+  @Expose()
+  @Transform(({ value }) => value ?? kbResponseMessages.assistantListSuccess)
+  Message!: string;
+
+  @Expose()
+  @Transform(({ value }) => value ?? moment().format('YYYY-MM-DD HH:mm:ss'))
+  TimeStamp!: string;
+
+  @Expose()
+  @Transform(({ value }) => value ?? kbResponseCodes.assistantListSuccess)
+  EvCode!: string;
+
+  @Expose()
+  @Transform(({ value }) => value ?? EvType.Success)
+  EvType!: EvType;
+
+  @Expose()
+  @Transform(({ value }) => (value != null ? String(value).trim() : ''))
+  ReqId?: string;
+
+  @Expose()
+  @Transform(({ value }) => (value != null ? String(value).trim() : ''))
+  ReqCode?: string;
+
+  @Expose()
+  @Type(() => Object)
+  Data!: KbAssistantSummary[];
 }

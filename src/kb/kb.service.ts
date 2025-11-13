@@ -14,9 +14,9 @@ import { KbPlatformSID } from './types/kb.types';
 import { kbResponseMessages, kbResponseCodes } from './constants/kb.constants';
 import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
 import type { KbInitResult, KbStoreSummary, KbDeleteResult } from './types/kb.types';
-import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateResponseEnvelopeDto } from './dto/kb.dto';
-import type { KbInitDto, KbStoreListDto, KbDeleteDto, KbFileUploadDto, KbFileListDto, KbVectorStoreFileDto, KbAssistantCreateDto } from './dto/kb.dto';
-import type { KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult } from './types/kb.types';
+import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateResponseEnvelopeDto, KbAssistantListResponseEnvelopeDto } from './dto/kb.dto';
+import type { KbInitDto, KbStoreListDto, KbDeleteDto, KbFileUploadDto, KbFileListDto, KbVectorStoreFileDto, KbAssistantCreateDto, KbAssistantListDto } from './dto/kb.dto';
+import type { KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary } from './types/kb.types';
 
 @Injectable()
 export class KbService {
@@ -431,6 +431,42 @@ export class KbService {
       kbResponseMessages?.assistantCreateSuccess,
       kbResponseCodes?.assistantCreateSuccess,
       kbResponseMessages?.assistantCreateFailed,
+      commonResponseCodes?.InternalServerError,
+      dto,
+    );
+  }
+
+  async getAssistants(req: CustomJwtRequest, dto: KbAssistantListDto): Promise<KbAssistantListResponseEnvelopeDto> {
+    return this.execute<KbAssistantSummary[]>(
+      req,
+      async ({ tenantCode }) => {
+        const { KBUID } = req.query as { KBUID: string };
+        const ds: DataSource | null = this.tenantDb.getTenantDataSource(tenantCode);
+
+        const repo = ds?.getRepository(KBAssistant);
+        const rows: KBAssistant[] | undefined = await repo?.find({ where: { KBUID } });
+
+        if (!rows || rows.length === 0) {
+          this.logger.warn(kbResponseMessages?.assistantsNotFound, KBUID);
+          throw new Error(kbResponseMessages?.assistantsNotFound);
+        }
+
+        const result: KbAssistantSummary[] = rows.map((r) => ({
+          Id: r?.Id,
+          KBUID: r?.KBUID,
+          Name: r?.Name,
+          Instructions: r?.Instructions,
+          XPRef: r?.XPRef,
+          CreatedOn: r?.CreatedOn,
+          EditedOn: r?.EditedOn,
+        }));
+        this.logger.info(kbResponseMessages?.assistantListSuccess, JSON.stringify(result));
+        return result;
+      },
+      KbAssistantListResponseEnvelopeDto,
+      kbResponseMessages?.assistantListSuccess,
+      kbResponseCodes?.assistantListSuccess,
+      kbResponseMessages?.assistantListFailed,
       commonResponseCodes?.InternalServerError,
       dto,
     );
