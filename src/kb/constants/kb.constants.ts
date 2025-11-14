@@ -48,6 +48,9 @@ export const kbResponseMessages = {
   // Assistant update
   assistantUpdateSuccess: 'KB Assistant updated successfully',
   assistantUpdateFailed: 'KB Assistant update setting failed',
+  // Thread creation
+  threadCreateSuccess: 'KB Thread created successfully',
+  threadCreateFailed: 'KB Thread creation failed',
 } as const;
 
 export const kbResponseCodes = {
@@ -61,10 +64,8 @@ export const kbResponseCodes = {
   vectorStoreFileSuccess: 'VectorStoreFileSuccess',
   vectorStoreFileDeleteSuccess: 'VectorstoreFileDeleteSuccess',
   internalServerError: 'InternalServerError',
-  // Assistant creation
   assistantCreateSuccess: 'AssistantCreationSuccess',
-  // Assistant update
   assistantUpdateSuccess: 'AssistantUpdateSuccess',
-  // Assistant listing
   assistantListSuccess: 'GetAssistantsSuccess',
+  threadCreateSuccess: 'KBThreadCreationSuccess ',
 } as const;

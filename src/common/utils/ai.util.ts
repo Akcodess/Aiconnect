@@ -10,7 +10,7 @@ import { commonResponseMessages } from '../constants/common.constants';
 import { v4 as uuidv4 } from 'uuid';
 import { kbResponseMessages } from '../../kb/constants/kb.constants';
 import type { KbFileUploadOpenAIParams, KbFileUploadResult } from '../../kb/types/kb.types';
-import type { KbVectorStoreFileInput, KbVectorStoreFileResult, KbAssistantCreateInput, KbAssistantCreateResult, KbAssistantUpdateResult } from '../../kb/types/kb.types';
+import type { KbVectorStoreFileInput, KbVectorStoreFileResult, KbAssistantCreateInput, KbAssistantCreateResult, KbAssistantUpdateResult, KbThreadCreateResult } from '../../kb/types/kb.types';
 import { KbStatus } from '../../kb/types/kb.types';
 import { utilMessages } from '../constants/util.contant';
 
@@ -74,7 +74,7 @@ export class AiUtilService {
       const vectorStore = await openai?.vectorStores.create({ name: `kb-vector-${kbuid}` });
       const vectorStoreId = vectorStore.id;
 
-      return { KBUID: kbuid, XPlatformID: XPlatformID, XPRef: { VectorStoreId: vectorStoreId }};
+      return { KBUID: kbuid, XPlatformID: XPlatformID, XPRef: { VectorStoreId: vectorStoreId } };
     } catch (error: any) {
       this.logger.error(kbResponseMessages.kbInitFailed, error?.message || error);
       return null;
@@ -209,6 +209,18 @@ export class AiUtilService {
       return { AssistantId, Instructions } as KbAssistantUpdateResult;
     } catch (error: any) {
       this.logger.error(kbResponseMessages?.assistantUpdateFailed, error?.message || error);
+      return null;
+    }
+  }
+
+  // Create a thread in OpenAI
+  async kbThreadCreateOpenAI({ APIKey }: { APIKey: string }): Promise<KbThreadCreateResult | null> {
+    const openai = new OpenAI({ apiKey: APIKey });
+    try {
+      const thread = await openai.beta.threads.create();
+      return { threadId: thread?.id } as KbThreadCreateResult;
+    } catch (error: any) {
+      this.logger.error(kbResponseMessages?.threadCreateFailed, error?.message || error);
       return null;
     }
   }

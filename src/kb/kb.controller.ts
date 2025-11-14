@@ -4,7 +4,7 @@ import { KbService } from './kb.service';
 import type { CustomJwtRequest } from '../common/types/request.types';
 import { AuthGuard } from '../common/guards/session.guard';
 import { apiVersion } from '../common/constants/version.constants';
-import { KbInitDto, KbInitResponseEnvelopeDto, KbStoreListDto, KbStoreListResponseEnvelopeDto, KbDeleteDto, KbDeleteResponseEnvelopeDto, KbFileUploadDto, KbFileUploadResponseEnvelopeDto, KbFileListDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateDto, KbAssistantCreateResponseEnvelopeDto, KbAssistantListDto, KbAssistantListResponseEnvelopeDto, KbAssistantUpdateDto, KbAssistantUpdateResponseEnvelopeDto, KbAssistantDeleteResponseEnvelopeDto } from './dto/kb.dto';
+import { KbInitDto, KbInitResponseEnvelopeDto, KbStoreListDto, KbStoreListResponseEnvelopeDto, KbDeleteDto, KbDeleteResponseEnvelopeDto, KbFileUploadDto, KbFileUploadResponseEnvelopeDto, KbFileListDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateDto, KbAssistantCreateResponseEnvelopeDto, KbAssistantListDto, KbAssistantListResponseEnvelopeDto, KbAssistantUpdateDto, KbAssistantUpdateResponseEnvelopeDto, KbAssistantDeleteResponseEnvelopeDto, KbThreadCreateDto, KbThreadCreateResponseEnvelopeDto } from './dto/kb.dto';
 
 @Controller({ path: 'kb', version: apiVersion })
 export class KbController {
@@ -97,5 +97,13 @@ export class KbController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async assistantDelete(@Req() req: CustomJwtRequest, @Query() dto: KbDeleteDto): Promise<KbAssistantDeleteResponseEnvelopeDto> {
     return this.service?.assistantDelete(req, dto) as Promise<KbAssistantDeleteResponseEnvelopeDto>;
+  }
+
+  // Create a Thread (POST)
+  @Post('thread')
+  @UseGuards(AuthGuard)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async threadCreate(@Req() req: CustomJwtRequest, @Body() dto: KbThreadCreateDto): Promise<KbThreadCreateResponseEnvelopeDto> {
+    return this.service?.threadCreate(req, dto) as Promise<KbThreadCreateResponseEnvelopeDto>;
   }
 }

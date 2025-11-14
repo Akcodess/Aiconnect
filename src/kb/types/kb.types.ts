@@ -37,6 +37,7 @@ export interface KbHandlerOps {
   AssistantUpdate?: (platform: string, creds: KbHandlerCreds, input: KbAssistantUpdateInput) => Promise<KbAssistantUpdateResult | null>;
   VectorStoreFileCreate?: (platform: string, creds: KbHandlerCreds, input: KbVectorStoreFileInput) => Promise<KbVectorStoreFileResult | null>;
   VectorStoreFileDelete?: (platform: string, creds: KbHandlerCreds, input: KbVectorStoreFileInput) => Promise<KbVectorStoreFileResult | null>;
+  ThreadCreate?: (platform: string, creds: KbHandlerCreds) => Promise<KbThreadCreateResult | null>;
 }
 
 export interface KbStoreSummary {
@@ -143,4 +144,9 @@ export interface KbVectorStoreFileInput {
 export interface KbVectorStoreFileResult {
   VectorStoreId: string;
   FileIds: string[];
+}
+
+// Result for KB Thread creation
+export interface KbThreadCreateResult {
+  threadId: string;
 }

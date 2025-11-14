@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { AiUtilService } from '../common/utils/ai.util';
 import { LoggingService } from '../common/utils/logging.util';
-import type { KbInitResult, KbHandlerCreds, KbHandlerOps, KbFileUploadInput, KbFileUploadResult, KbVectorStoreFileInput, KbVectorStoreFileResult, KbAssistantCreateInput, KbAssistantCreateResult, KbAssistantUpdateInput, KbAssistantUpdateResult } from './types/kb.types';
+import type { KbInitResult, KbHandlerCreds, KbHandlerOps, KbFileUploadInput, KbFileUploadResult, KbVectorStoreFileInput, KbVectorStoreFileResult, KbAssistantCreateInput, KbAssistantCreateResult, KbAssistantUpdateInput, KbAssistantUpdateResult, KbThreadCreateResult } from './types/kb.types';
 import { kbResponseMessages } from './constants/kb.constants';
 
 @Injectable()
@@ -20,6 +20,7 @@ export class KbAIHandlerService {
       VectorStoreFileDelete: this.handleOpenAIVectorStoreFileDelete.bind(this),
       AssistantCreate: this.handleOpenAIAssistantCreate.bind(this),
       AssistantUpdate: this.handleOpenAIAssistantUpdate.bind(this),
+      ThreadCreate: this.handleOpenAIThreadCreate.bind(this),
     }
   };
 
@@ -116,6 +117,16 @@ export class KbAIHandlerService {
       return result as KbAssistantUpdateResult;
     } catch (err: unknown) {
       this.logger.error(kbResponseMessages?.assistantUpdateFailed, err instanceof Error ? err.message : String(err));
+      return null;
+    }
+  }
+
+  private async handleOpenAIThreadCreate(platform: string, creds: KbHandlerCreds): Promise<KbThreadCreateResult | null> {
+    try {
+      const result = await this.aiUtil?.kbThreadCreateOpenAI({ APIKey: creds?.APIKey! });
+      return result as KbThreadCreateResult;
+    } catch (err: unknown) {
+      this.logger.error(kbResponseMessages?.threadCreateFailed, err instanceof Error ? err.message : String(err));
       return null;
     }
   }
