@@ -4,7 +4,7 @@ import moment from 'moment';
 
 import { EvType } from '../../common/enums/evtype.enums';
 import { kbResponseCodes, kbResponseMessages } from '../constants/kb.constants';
-import type { KbStoreSummary, KbInitResult, KbDeleteResult, KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary, KbAssistantUpdateResult, KbAssistantDeleteResult, KbThreadCreateResult } from '../types/kb.types';
+import type { KbStoreSummary, KbInitResult, KbDeleteResult, KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary, KbAssistantUpdateResult, KbAssistantDeleteResult, KbThreadCreateResult, KbRunMessageResult } from '../types/kb.types';
 import { KbStatus } from '../types/kb.types';
 
 export class KbInitDto {
@@ -538,4 +538,58 @@ export class KbThreadCreateResponseEnvelopeDto {
   @Expose()
   @Type(() => Object)
   Data!: KbThreadCreateResult;
+}
+
+// Request DTO for POST /kb/run-message
+export class KbRunMessageDto {
+  @IsString()
+  @IsNotEmpty()
+  ReqId!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  ReqCode!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  Message!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  ThreadId!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  AssistantId!: string;
+}
+
+// Response envelope for KB run message
+export class KbRunMessageResponseEnvelopeDto {
+  @Expose()
+  @Transform(({ value }) => value ?? kbResponseMessages?.runMessageSuccess)
+  Message!: string;
+
+  @Expose()
+  @Transform(({ value }) => value ?? moment().format('YYYY-MM-DD HH:mm:ss'))
+  TimeStamp!: string;
+
+  @Expose()
+  @Transform(({ value }) => value ?? kbResponseCodes?.runMessageSuccess)
+  EvCode!: string;
+
+  @Expose()
+  @Transform(({ value }) => value ?? EvType.Success)
+  EvType!: EvType;
+
+  @Expose()
+  @Transform(({ value }) => (value != null ? String(value).trim() : ''))
+  ReqId?: string;
+
+  @Expose()
+  @Transform(({ value }) => (value != null ? String(value).trim() : ''))
+  ReqCode?: string;
+
+  @Expose()
+  @Type(() => Object)
+  Data!: KbRunMessageResult;
 }

@@ -10,7 +10,7 @@ import { commonResponseMessages } from '../constants/common.constants';
 import { v4 as uuidv4 } from 'uuid';
 import { kbResponseMessages } from '../../kb/constants/kb.constants';
 import type { KbFileUploadOpenAIParams, KbFileUploadResult } from '../../kb/types/kb.types';
-import type { KbVectorStoreFileInput, KbVectorStoreFileResult, KbAssistantCreateInput, KbAssistantCreateResult, KbAssistantUpdateResult, KbThreadCreateResult } from '../../kb/types/kb.types';
+import type { KbVectorStoreFileInput, KbVectorStoreFileResult, KbAssistantCreateInput, KbAssistantCreateResult, KbAssistantUpdateResult, KbThreadCreateResult, KbRunMessageInput, KbRunMessageResult } from '../../kb/types/kb.types';
 import { KbStatus } from '../../kb/types/kb.types';
 import { utilMessages } from '../constants/util.contant';
 
@@ -221,6 +221,28 @@ export class AiUtilService {
       return { threadId: thread?.id } as KbThreadCreateResult;
     } catch (error: any) {
       this.logger.error(kbResponseMessages?.threadCreateFailed, error?.message || error);
+      return null;
+    }
+  }
+
+  // Run a message in a thread and start an assistant run
+  async kbRunMessageOpenAI({ APIKey, Message, ThreadId, AssistantId }: { APIKey: string } & KbRunMessageInput): Promise<KbRunMessageResult | null> {
+    const openai = new OpenAI({ apiKey: APIKey });
+    try {
+      // Add user's message to thread
+      await openai?.beta?.threads?.messages?.create?.(ThreadId!, {
+        role: 'user',
+        content: Message!,
+      });
+
+      // Run the assistant on the thread to generate a response
+      const run = await openai?.beta?.threads?.runs?.create?.(ThreadId!, {
+        assistant_id: AssistantId!,
+      });
+
+      return { ThreadId, RunId: run?.id! } as KbRunMessageResult;
+    } catch (error: any) {
+      this.logger.error(kbResponseMessages?.runMessageFailed, error?.message || error);
       return null;
     }
   }

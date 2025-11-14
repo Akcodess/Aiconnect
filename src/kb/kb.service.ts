@@ -14,9 +14,9 @@ import { KbPlatformSID, KbStatus } from './types/kb.types';
 import { kbResponseMessages, kbResponseCodes } from './constants/kb.constants';
 import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
 import type { KbInitResult, KbStoreSummary, KbDeleteResult } from './types/kb.types';
-import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateResponseEnvelopeDto, KbAssistantListResponseEnvelopeDto, KbAssistantUpdateResponseEnvelopeDto, KbAssistantDeleteResponseEnvelopeDto, KbThreadCreateResponseEnvelopeDto } from './dto/kb.dto';
-import type { KbInitDto, KbStoreListDto, KbDeleteDto, KbFileUploadDto, KbFileListDto, KbVectorStoreFileDto, KbAssistantCreateDto, KbAssistantListDto, KbAssistantUpdateDto, KbThreadCreateDto } from './dto/kb.dto';
-import type { KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary, KbAssistantUpdateResult, KbAssistantDeleteResult, KbThreadCreateResult } from './types/kb.types';
+import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateResponseEnvelopeDto, KbAssistantListResponseEnvelopeDto, KbAssistantUpdateResponseEnvelopeDto, KbAssistantDeleteResponseEnvelopeDto, KbThreadCreateResponseEnvelopeDto, KbRunMessageResponseEnvelopeDto } from './dto/kb.dto';
+import type { KbInitDto, KbStoreListDto, KbDeleteDto, KbFileUploadDto, KbFileListDto, KbVectorStoreFileDto, KbAssistantCreateDto, KbAssistantListDto, KbAssistantUpdateDto, KbThreadCreateDto, KbRunMessageDto } from './dto/kb.dto';
+import type { KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary, KbAssistantUpdateResult, KbAssistantDeleteResult, KbThreadCreateResult, KbRunMessageResult } from './types/kb.types';
 
 @Injectable()
 export class KbService {
@@ -234,24 +234,6 @@ export class KbService {
       kbResponseMessages.fileUploadSuccess,
       kbResponseCodes.fileUploadSuccess,
       kbResponseMessages.fileUploadFailed,
-      commonResponseCodes.InternalServerError,
-      dto,
-    );
-  }
-
-  async threadCreate(req: CustomJwtRequest, dto: KbThreadCreateDto) {
-    return this.execute<KbThreadCreateResult | null>(
-      req,
-      async ({ xplatform, apikey }) => {
-        const ops = this.kbHandler?.getOps(xplatform);
-        const result = await ops?.ThreadCreate?.(xplatform, { APIKey: apikey });
-
-        return result!;
-      },
-      KbThreadCreateResponseEnvelopeDto,
-      kbResponseMessages.threadCreateSuccess,
-      kbResponseCodes.threadCreateSuccess,
-      kbResponseMessages.threadCreateFailed,
       commonResponseCodes.InternalServerError,
       dto,
     );
@@ -567,6 +549,43 @@ export class KbService {
       kbResponseCodes?.assistantDeleteSuccess,
       kbResponseMessages?.assistantDeleteFailed,
       commonResponseCodes?.InternalServerError,
+      dto,
+    );
+  }
+
+  async threadCreate(req: CustomJwtRequest, dto: KbThreadCreateDto) {
+    return this.execute<KbThreadCreateResult | null>(
+      req,
+      async ({ xplatform, apikey }) => {
+        const ops = this.kbHandler?.getOps(xplatform);
+        const result = await ops?.ThreadCreate?.(xplatform, { APIKey: apikey });
+
+        return result!;
+      },
+      KbThreadCreateResponseEnvelopeDto,
+      kbResponseMessages.threadCreateSuccess,
+      kbResponseCodes.threadCreateSuccess,
+      kbResponseMessages.threadCreateFailed,
+      commonResponseCodes.InternalServerError,
+      dto,
+    );
+  }
+
+  async runMessage(req: CustomJwtRequest, dto: KbRunMessageDto) {
+    return this.execute<KbRunMessageResult | null>(
+      req,
+      async ({ xplatform, apikey }) => {
+        const { Message, ThreadId, AssistantId } = dto;
+        const ops = this.kbHandler?.getOps(xplatform);
+        const result = await ops?.RunMessage?.(xplatform, { APIKey: apikey }, { Message, ThreadId, AssistantId }) ?? null;
+
+        return result!;
+      },
+      KbRunMessageResponseEnvelopeDto,
+      kbResponseMessages.runMessageSuccess,
+      kbResponseCodes.runMessageSuccess,
+      kbResponseMessages.runMessageFailed,
+      commonResponseCodes.InternalServerError,
       dto,
     );
   }

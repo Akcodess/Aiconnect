@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { AiUtilService } from '../common/utils/ai.util';
 import { LoggingService } from '../common/utils/logging.util';
-import type { KbInitResult, KbHandlerCreds, KbHandlerOps, KbFileUploadInput, KbFileUploadResult, KbVectorStoreFileInput, KbVectorStoreFileResult, KbAssistantCreateInput, KbAssistantCreateResult, KbAssistantUpdateInput, KbAssistantUpdateResult, KbThreadCreateResult } from './types/kb.types';
+import type { KbInitResult, KbHandlerCreds, KbHandlerOps, KbFileUploadInput, KbFileUploadResult, KbVectorStoreFileInput, KbVectorStoreFileResult, KbAssistantCreateInput, KbAssistantCreateResult, KbAssistantUpdateInput, KbAssistantUpdateResult, KbThreadCreateResult, KbRunMessageInput, KbRunMessageResult } from './types/kb.types';
 import { kbResponseMessages } from './constants/kb.constants';
 
 @Injectable()
@@ -21,6 +21,7 @@ export class KbAIHandlerService {
       AssistantCreate: this.handleOpenAIAssistantCreate.bind(this),
       AssistantUpdate: this.handleOpenAIAssistantUpdate.bind(this),
       ThreadCreate: this.handleOpenAIThreadCreate.bind(this),
+      RunMessage: this.handleOpenAIRunMessage.bind(this),
     }
   };
 
@@ -127,6 +128,16 @@ export class KbAIHandlerService {
       return result as KbThreadCreateResult;
     } catch (err: unknown) {
       this.logger.error(kbResponseMessages?.threadCreateFailed, err instanceof Error ? err.message : String(err));
+      return null;
+    }
+  }
+
+  private async handleOpenAIRunMessage(_: string, creds: KbHandlerCreds, input: KbRunMessageInput): Promise<KbRunMessageResult | null> {
+    try {
+      const result = await this.aiUtil?.kbRunMessageOpenAI({ APIKey: creds?.APIKey!, ...input });
+      return result as KbRunMessageResult;
+    } catch (err: unknown) {
+      this.logger.error(kbResponseMessages?.runMessageFailed, err instanceof Error ? err.message : String(err));
       return null;
     }
   }

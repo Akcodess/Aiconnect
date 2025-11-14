@@ -51,6 +51,9 @@ export const kbResponseMessages = {
   // Thread creation
   threadCreateSuccess: 'KB Thread created successfully',
   threadCreateFailed: 'KB Thread creation failed',
+  // Run message
+  runMessageSuccess: 'KB Run message completed successfully',
+  runMessageFailed: 'KB Run message failed',
 } as const;
 
 export const kbResponseCodes = {
@@ -67,5 +70,6 @@ export const kbResponseCodes = {
   assistantCreateSuccess: 'AssistantCreationSuccess',
   assistantUpdateSuccess: 'AssistantUpdateSuccess',
   assistantListSuccess: 'GetAssistantsSuccess',
-  threadCreateSuccess: 'KBThreadCreationSuccess ',
+  threadCreateSuccess: 'KBThreadCreationSuccess',
+  runMessageSuccess: 'KBRunMessageSuccess',
 } as const;
