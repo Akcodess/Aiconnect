@@ -7,7 +7,7 @@ import { LoggingService } from '../common/utils/logging.util';
 import { ValkeyConfigService } from '../valkey/valkey.service';
 import { InsightAIHandlerService } from './ai-handler.service';
 import { InsightDto, InsightResponseDto, InsightResponseEnvelopeDto } from './dto/insight.dto';
-import { InsightPlatformSID } from './types/insight.types';
+import { InsightPlatformSID, InsightPlatformSIDType } from './types/insight.types';
 import { insightResponseCodes, insightResponseMessages } from './constants/insight.constants';
 import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
 import { PromptHelper } from '../common/helpers/prompt.helper';
@@ -27,7 +27,7 @@ export class InsightService {
     const apikey = req?.XPlatformUA?.APISecretKey;
     const clientEmail = req?.XPlatformUA?.ClientEmail;
     const projectId = req?.XPlatformUA?.ProjectId;
-    const xplatformSID = req?.XPlatformSID;
+    const xplatformSID = req?.XPlatformSID as InsightPlatformSIDType;
 
     const { ReqId, ReqCode, UXID, ProcessCode, MessageID, Message, AllowedInsights = [], DispositionList, QuestionAnswer } = body;
 

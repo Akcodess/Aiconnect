@@ -34,7 +34,11 @@ async function bootstrap() {
     .addTag(process.env.AICONNECT_V!)
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, documentFactory);
+  SwaggerModule.setup('api', app, documentFactory, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  });
 
   // Serve static files
   app.use(`/${process.env.AICONNECT_V}/v${process.env.API_VERSION}/${process.env.ACCESS_FILEUPLODA_PATH}`, express.static(path.join(process.cwd(), `src/${process.env.ACCESS_FILEUPLODA_PATH!}`)));
