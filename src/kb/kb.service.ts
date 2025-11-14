@@ -332,8 +332,7 @@ export class KbService {
           // Fallback to JSON_EXTRACT on XPRef to locate the file by FileId without relying on a new column type
           const file = await fileRepo?.createQueryBuilder('kbfile').where("JSON_UNQUOTE(JSON_EXTRACT(kbfile.XPRef, '$.FileId')) = :fileId", { fileId }).getOne();
 
-          const xpref = { ...(file?.XPRef || {}), FileId: fileId, Status: KbStatus?.Active };
-          file!.XPRef = xpref;
+          file!.XPRef = { ...(file?.XPRef || {}), FileId: fileId, Status: KbStatus?.Active };
           await fileRepo?.save(file!);
         }
 
@@ -373,8 +372,7 @@ export class KbService {
           // Fallback to JSON_EXTRACT on XPRef to locate the file by FileId without relying on a new column type
           const file = await fileRepo?.createQueryBuilder('kbfile').where("JSON_UNQUOTE(JSON_EXTRACT(kbfile.XPRef, '$.FileId')) = :fileId", { fileId }).getOne();
 
-          const xpref = { ...(file?.XPRef || {}), FileId: fileId, Status: KbStatus?.Inactive };
-          file!.XPRef = xpref;
+          file!.XPRef = { ...(file?.XPRef || {}), FileId: fileId, Status: KbStatus?.Inactive };
           await fileRepo?.save(file!);
         }
 
@@ -501,13 +499,13 @@ export class KbService {
 
         // Update assistant row in DB by AssistantId in XPRef JSON
         const assistantRepo = ds?.getRepository(KBAssistant);
-        const assistant = await assistantRepo?.createQueryBuilder('assistant').where("JSON_UNQUOTE(JSON_EXTRACT(assistant.XPRef, '$.AssistantId')) = :assistantId", { assistantId: AssistantId }).getOne();
+        const assistant = await assistantRepo?.createQueryBuilder('kbassistant').where("JSON_UNQUOTE(JSON_EXTRACT(kbassistant.XPRef, '$.AssistantId')) = :assistantId", { assistantId: AssistantId }).getOne();
 
         if (assistant) {
-          assistant.Instructions = Instructions;
+          assistant!.Instructions = Instructions;
           const xpref = { ...(assistant?.XPRef || {}), AssistantId, Status };
-          assistant.XPRef = xpref;
-          await assistantRepo?.save(assistant);
+          assistant!.XPRef = xpref;
+          await assistantRepo?.save(assistant!);
         }
 
         return responseResult;
@@ -530,9 +528,7 @@ export class KbService {
         const assistantRepo = ds?.getRepository(KBAssistant);
 
         // Find assistant by AssistantId nested inside XPRef JSON
-        const assistant = await assistantRepo?.createQueryBuilder('kbassistant')
-          .where("JSON_UNQUOTE(JSON_EXTRACT(kbassistant.XPRef, '$.AssistantId')) = :assistantId", { assistantId: id })
-          .getOne();
+        const assistant = await assistantRepo?.createQueryBuilder('kbassistant').where("JSON_UNQUOTE(JSON_EXTRACT(kbassistant.XPRef, '$.AssistantId')) = :assistantId", { assistantId: id }).getOne();
 
         if (!assistant) {
           this.logger.warn(kbResponseMessages?.assistantsNotFound, id);

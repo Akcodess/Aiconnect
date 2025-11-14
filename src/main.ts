@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import { AppModule } from './app.module';
 import path from 'path';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 import { ResponseExceptionFilter } from './common/filters/response-exception.filter';
 async function bootstrap() {
@@ -26,12 +27,21 @@ async function bootstrap() {
   // Enable CORS for all routes
   app.enableCors();
 
+  // Swagger setup
+  const config = new DocumentBuilder()
+    .setTitle(process.env.AICONNECT_V!)
+    .setVersion(process.env.BUILD_NUMBER!)
+    .addTag(process.env.AICONNECT_V!)
+    .build();
+  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, documentFactory);
+
   // Serve static files
   app.use(`/${process.env.AICONNECT_V}/v${process.env.API_VERSION}/${process.env.ACCESS_FILEUPLODA_PATH}`, express.static(path.join(process.cwd(), `src/${process.env.ACCESS_FILEUPLODA_PATH!}`)));
 
   // Set global prefix and enable URI versioning so routes are served under /aiconnect/v1 and /aiconnect/v2
   app.setGlobalPrefix(process.env.AICONNECT_V!);
-  app.enableVersioning({ type: VersioningType.URI, defaultVersion: process.env.API_VERSION ?? '1' });
+  app.enableVersioning({ type: VersioningType.URI, defaultVersion: process.env.API_VERSION! });
 
   // Initialize the Nest app without binding a single port
   await app.init();

@@ -21,7 +21,7 @@ export class AiUtilService {
   async chatCompletion(prompt: string, apiKey?: string): Promise<string | null> {
     try {
       const openai = new OpenAI({ apiKey });
-      const response = await openai.chat.completions.create({
+      const response = await openai?.chat?.completions.create({
         model: process.env.OPENAI_MODEL!,
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.3,
@@ -71,7 +71,7 @@ export class AiUtilService {
 
     try {
       const kbuid = uuidv4();
-      const vectorStore = await openai.vectorStores.create({ name: `kb-vector-${kbuid}` });
+      const vectorStore = await openai?.vectorStores.create({ name: `kb-vector-${kbuid}` });
       const vectorStoreId = vectorStore.id;
 
       return { KBUID: kbuid, XPlatformID: XPlatformID, XPRef: { VectorStoreId: vectorStoreId }};
@@ -85,7 +85,7 @@ export class AiUtilService {
   async kbDeleteFileOpenAI({ APIKey, FileId }: { APIKey: string; FileId: string }): Promise<boolean> {
     const openai = new OpenAI({ apiKey: APIKey });
     try {
-      const resp = await openai.files.delete(FileId as any);
+      const resp = await openai?.files.delete(FileId as any);
       return !!resp;
     } catch (error: any) {
       this.logger.warn(utilMessages?.KbFileDeleteError, error?.message || error);
@@ -97,7 +97,7 @@ export class AiUtilService {
   async kbDeleteVectorStoreOpenAI({ APIKey, VectorStoreId }: { APIKey: string; VectorStoreId: string }): Promise<boolean> {
     const openai = new OpenAI({ apiKey: APIKey });
     try {
-      const resp = await (openai as any).vectorStores?.delete?.(VectorStoreId);
+      const resp = await openai?.vectorStores?.delete?.(VectorStoreId);
       return !!resp;
     } catch (error: any) {
       this.logger.warn(utilMessages?.KbDeleteVectorStoreError, error?.message || error);
@@ -109,7 +109,7 @@ export class AiUtilService {
   async kbDeleteAssistantOpenAI({ APIKey, AssistantId }: { APIKey: string; AssistantId: string }): Promise<boolean> {
     const openai = new OpenAI({ apiKey: APIKey });
     try {
-      const resp = await (openai as any).assistants?.delete?.(AssistantId);
+      const resp = await openai?.beta?.assistants?.delete?.(AssistantId);
       return !!resp;
     } catch (error: any) {
       this.logger.warn(utilMessages?.KbDeleteAssistantError, error?.message || error);
@@ -181,7 +181,7 @@ export class AiUtilService {
   async kbAssistantCreateOpenAI({ APIKey, VectorStoreId, Name, Instructions, KBUID }: { APIKey: string } & KbAssistantCreateInput): Promise<KbAssistantCreateResult | null> {
     const openai = new OpenAI({ apiKey: APIKey });
     try {
-      const assistant = await (openai as any)?.assistants?.create?.({
+      const assistant = await openai?.beta.assistants?.create?.({
         name: Name,
         instructions: Instructions,
         model: process.env.OPENAI_MODEL!,
@@ -204,7 +204,7 @@ export class AiUtilService {
   async kbAssistantUpdateOpenAI({ APIKey, AssistantId, Instructions }: { APIKey: string; AssistantId: string; Instructions: string }): Promise<KbAssistantUpdateResult | null> {
     const openai = new OpenAI({ apiKey: APIKey });
     try {
-      const assistant = await (openai as any)?.assistants?.update?.(AssistantId!, { instructions: Instructions });
+      const assistant = await openai?.beta?.assistants?.update?.(AssistantId!, { instructions: Instructions });
       if (!assistant) return null;
       return { AssistantId, Instructions } as KbAssistantUpdateResult;
     } catch (error: any) {
