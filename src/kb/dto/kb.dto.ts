@@ -4,7 +4,7 @@ import moment from 'moment';
 
 import { EvType } from '../../common/enums/evtype.enums';
 import { kbResponseCodes, kbResponseMessages } from '../constants/kb.constants';
-import type { KbStoreSummary, KbInitResult, KbDeleteResult, KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary, KbAssistantUpdateResult, KbAssistantDeleteResult, KbThreadCreateResult, KbRunMessageResult, KbRunStatusResult } from '../types/kb.types';
+import type { KbStoreSummary, KbInitResult, KbDeleteResult, KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary, KbAssistantUpdateResult, KbAssistantDeleteResult, KbThreadCreateResult, KbRunMessageResult, KbRunStatusResult, KbGetMessagesResult } from '../types/kb.types';
 import { KbStatus } from '../types/kb.types';
 
 export class KbInitDto {

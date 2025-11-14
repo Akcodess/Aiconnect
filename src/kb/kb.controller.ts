@@ -4,7 +4,8 @@ import { KbService } from './kb.service';
 import type { CustomJwtRequest } from '../common/types/request.types';
 import { AuthGuard } from '../common/guards/session.guard';
 import { apiVersion } from '../common/constants/version.constants';
-import { KbInitDto, KbInitResponseEnvelopeDto, KbStoreListDto, KbStoreListResponseEnvelopeDto, KbDeleteDto, KbDeleteResponseEnvelopeDto, KbFileUploadDto, KbFileUploadResponseEnvelopeDto, KbFileListDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateDto, KbAssistantCreateResponseEnvelopeDto, KbAssistantListDto, KbAssistantListResponseEnvelopeDto, KbAssistantUpdateDto, KbAssistantUpdateResponseEnvelopeDto, KbAssistantDeleteResponseEnvelopeDto, KbThreadCreateDto, KbThreadCreateResponseEnvelopeDto, KbRunMessageDto, KbRunMessageResponseEnvelopeDto} from './dto/kb.dto';
+import { KbInitDto, KbInitResponseEnvelopeDto, KbStoreListDto, KbStoreListResponseEnvelopeDto, KbDeleteDto, KbDeleteResponseEnvelopeDto, KbFileUploadDto, KbFileUploadResponseEnvelopeDto, KbFileListDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateDto, KbAssistantCreateResponseEnvelopeDto, KbAssistantListDto, KbAssistantListResponseEnvelopeDto, KbAssistantUpdateDto, KbAssistantUpdateResponseEnvelopeDto, KbAssistantDeleteResponseEnvelopeDto, KbThreadCreateDto, KbThreadCreateResponseEnvelopeDto, KbRunMessageDto, KbRunMessageResponseEnvelopeDto } from './dto/kb.dto';
+import {KbMessagesGetDto, KbMessagesGetResponseEnvelopeDto} from './dto/kb.message.dto';
 import {KbRunStatusGetDto, KbRunStatusGetResponseEnvelopeDto } from './dto/kb.runstatus.dto';
 
 @Controller({ path: 'kb', version: apiVersion })
@@ -122,5 +123,13 @@ export class KbController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async runStatusGet(@Req() req: CustomJwtRequest, @Query() dto: KbRunStatusGetDto): Promise<KbRunStatusGetResponseEnvelopeDto> {
     return this.service?.runStatusGet(req, dto) as Promise<KbRunStatusGetResponseEnvelopeDto>;
+  }
+
+  // Get messages (GET)
+  @Get('messages')
+  @UseGuards(AuthGuard)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async messagesGet(@Req() req: CustomJwtRequest, @Query() dto: KbMessagesGetDto): Promise<KbMessagesGetResponseEnvelopeDto> {
+    return this.service?.getMessages(req, dto) as Promise<KbMessagesGetResponseEnvelopeDto>;
   }
 }

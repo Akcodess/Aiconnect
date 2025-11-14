@@ -40,6 +40,7 @@ export interface KbHandlerOps {
   ThreadCreate?: (platform: string, creds: KbHandlerCreds) => Promise<KbThreadCreateResult | null>;
   RunMessage?: (platform: string, creds: KbHandlerCreds, input: KbRunMessageInput) => Promise<KbRunMessageResult | null>;
   GetRunStatus?: (platform: string, creds: KbHandlerCreds, input: KbRunStatusInput) => Promise<KbRunStatusResult | null>;
+  GetMessages?: (platform: string, creds: KbHandlerCreds, input: KbGetMessagesInput) => Promise<KbGetMessagesResult | null>;
 }
 
 export interface KbStoreSummary {
@@ -175,4 +176,19 @@ export interface KbRunStatusInput {
 // Result for getting run status
 export interface KbRunStatusResult {
   Status: string;
+}
+
+// Input for getting messages for a thread
+export interface KbGetMessagesInput {
+  ThreadId: string;
+  Limit?: string; // optional; if provided, will be parsed to number in util
+}
+
+// Result for messages list
+export interface KbGetMessagesResult {
+  ThreadId: string;
+  messages: Array<{
+    role: string;
+    content: any;
+  }>;
 }

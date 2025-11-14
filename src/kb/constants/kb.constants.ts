@@ -57,6 +57,9 @@ export const kbResponseMessages = {
   // Run status
   runStatusSuccess: 'KB Get run status completed successfully',
   runStatusFailed: 'KB Get run status failed',
+  // Messages get
+  messagesGetSuccess: 'KB Get messages completed successfully',
+  messagesGetFailed: 'KB Get messages failed',
 } as const;
 
 export const kbResponseCodes = {
@@ -76,4 +79,5 @@ export const kbResponseCodes = {
   threadCreateSuccess: 'KBThreadCreationSuccess',
   runMessageSuccess: 'KBRunMessageSuccess',
   runStatusSuccess: 'KBGetRunStatusSuccess',
+  messagesGetSuccess: 'KBGetMessagesSuccess',
 } as const;

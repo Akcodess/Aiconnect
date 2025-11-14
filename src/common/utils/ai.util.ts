@@ -10,7 +10,7 @@ import { commonResponseMessages } from '../constants/common.constants';
 import { v4 as uuidv4 } from 'uuid';
 import { kbResponseMessages } from '../../kb/constants/kb.constants';
 import type { KbFileUploadOpenAIParams, KbFileUploadResult } from '../../kb/types/kb.types';
-import type { KbVectorStoreFileInput, KbVectorStoreFileResult, KbAssistantCreateInput, KbAssistantCreateResult, KbAssistantUpdateResult, KbThreadCreateResult, KbRunMessageInput, KbRunMessageResult, KbRunStatusInput, KbRunStatusResult } from '../../kb/types/kb.types';
+import type { KbVectorStoreFileInput, KbVectorStoreFileResult, KbAssistantCreateInput, KbAssistantCreateResult, KbAssistantUpdateResult, KbThreadCreateResult, KbRunMessageInput, KbRunMessageResult, KbRunStatusInput, KbRunStatusResult, KbGetMessagesInput, KbGetMessagesResult } from '../../kb/types/kb.types';
 import { KbStatus } from '../../kb/types/kb.types';
 import { utilMessages } from '../constants/util.contant';
 
@@ -243,6 +243,21 @@ export class AiUtilService {
       return { ThreadId, RunId: run?.id! } as KbRunMessageResult;
     } catch (error: any) {
       this.logger.error(kbResponseMessages?.runMessageFailed, error?.message || error);
+      return null;
+    }
+  }
+
+  // Get messages for a thread
+  async kbGetMessagesOpenAI({ APIKey, ThreadId, Limit }: { APIKey: string } & KbGetMessagesInput): Promise<KbGetMessagesResult | null> {
+    const openai = new OpenAI({ apiKey: APIKey });
+    try {
+      const allMessages = await openai?.beta?.threads?.messages?.list?.(ThreadId!, { limit: Limit ? parseInt(Limit) : 20 });
+      return {
+        ThreadId,
+        messages: (allMessages?.data || []).map((msg) => ({ role: msg?.role, content: msg?.content }))
+      } as KbGetMessagesResult;
+    } catch (error: any) {
+      this.logger.error(kbResponseMessages?.messagesGetFailed, error?.message || error);
       return null;
     }
   }

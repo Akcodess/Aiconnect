@@ -16,8 +16,9 @@ import { commonResponseCodes, commonResponseMessages } from '../common/constants
 import type { KbInitResult, KbStoreSummary, KbDeleteResult } from './types/kb.types';
 import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateResponseEnvelopeDto, KbAssistantListResponseEnvelopeDto, KbAssistantUpdateResponseEnvelopeDto, KbAssistantDeleteResponseEnvelopeDto, KbThreadCreateResponseEnvelopeDto, KbRunMessageResponseEnvelopeDto } from './dto/kb.dto';
 import type { KbInitDto, KbStoreListDto, KbDeleteDto, KbFileUploadDto, KbFileListDto, KbVectorStoreFileDto, KbAssistantCreateDto, KbAssistantListDto, KbAssistantUpdateDto, KbThreadCreateDto, KbRunMessageDto } from './dto/kb.dto';
-import {KbRunStatusGetDto, KbRunStatusGetResponseEnvelopeDto } from './dto/kb.runstatus.dto';
-import type { KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary, KbAssistantUpdateResult, KbAssistantDeleteResult, KbThreadCreateResult, KbRunMessageResult, KbRunStatusResult } from './types/kb.types';
+import { KbRunStatusGetDto, KbRunStatusGetResponseEnvelopeDto } from './dto/kb.runstatus.dto';
+import {KbMessagesGetDto, KbMessagesGetResponseEnvelopeDto} from './dto/kb.message.dto';
+import type { KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary, KbAssistantUpdateResult, KbAssistantDeleteResult, KbThreadCreateResult, KbRunMessageResult, KbRunStatusResult, KbGetMessagesResult } from './types/kb.types';
 
 @Injectable()
 export class KbService {
@@ -42,8 +43,8 @@ export class KbService {
     const tenantCode = req.TenantCode!;
     const xplatformSID = req.XPlatformSID;
 
-    this.logger.info('Request Query:', JSON.stringify(req.query));
-    this.logger.info('Request Body:', JSON.stringify(req.body));
+    this.logger.info('Request Query:', JSON.stringify(req.query ?? {}));
+    this.logger.info('Request Body:', JSON.stringify(req.body) ?? {});
 
     // SID validation for KB endpoints
     if (xplatformSID !== KbPlatformSID.KB) {
@@ -564,10 +565,10 @@ export class KbService {
         return result!;
       },
       KbThreadCreateResponseEnvelopeDto,
-      kbResponseMessages.threadCreateSuccess,
-      kbResponseCodes.threadCreateSuccess,
-      kbResponseMessages.threadCreateFailed,
-      commonResponseCodes.InternalServerError,
+      kbResponseMessages?.threadCreateSuccess,
+      kbResponseCodes?.threadCreateSuccess,
+      kbResponseMessages?.threadCreateFailed,
+      commonResponseCodes?.InternalServerError,
       dto,
     );
   }
@@ -583,10 +584,10 @@ export class KbService {
         return result!;
       },
       KbRunMessageResponseEnvelopeDto,
-      kbResponseMessages.runMessageSuccess,
-      kbResponseCodes.runMessageSuccess,
-      kbResponseMessages.runMessageFailed,
-      commonResponseCodes.InternalServerError,
+      kbResponseMessages?.runMessageSuccess,
+      kbResponseCodes?.runMessageSuccess,
+      kbResponseMessages?.runMessageFailed,
+      commonResponseCodes?.InternalServerError,
       dto,
     );
   }
@@ -602,10 +603,29 @@ export class KbService {
         return result!;
       },
       KbRunStatusGetResponseEnvelopeDto,
-      kbResponseMessages.runStatusSuccess,
-      kbResponseCodes.runStatusSuccess,
-      kbResponseMessages.runStatusFailed,
-      commonResponseCodes.InternalServerError,
+      kbResponseMessages?.runStatusSuccess,
+      kbResponseCodes?.runStatusSuccess,
+      kbResponseMessages?.runStatusFailed,
+      commonResponseCodes?.InternalServerError,
+      dto,
+    );
+  }
+
+  async getMessages(req: CustomJwtRequest, dto: KbMessagesGetDto) {
+    return this.execute<KbGetMessagesResult | null>(
+      req,
+      async ({ xplatform, apikey }) => {
+        const { ThreadId, Limit } = dto;
+        const ops = this.kbHandler?.getOps(xplatform);
+        const result = await ops?.GetMessages?.(xplatform, { APIKey: apikey }, { ThreadId, Limit });
+
+        return result!;
+      },
+      KbMessagesGetResponseEnvelopeDto,
+      kbResponseMessages?.messagesGetSuccess,
+      kbResponseCodes?.messagesGetSuccess,
+      kbResponseMessages?.messagesGetFailed,
+      commonResponseCodes?.InternalServerError,
       dto,
     );
   }
