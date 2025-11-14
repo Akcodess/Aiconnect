@@ -1,5 +1,5 @@
-import { Body, Controller, HttpCode, Post, UsePipes, ValidationPipe, Req, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOkResponse } from '@nestjs/swagger';
+import { Body, Controller, Post, UsePipes, ValidationPipe, Req, UseGuards } from '@nestjs/common';
+import { ApiOkResponse } from '@nestjs/swagger';
 
 import { TextToSpeechService } from './text-to-speech.service';
 import { TextToSpeechDto } from './dto/text-to-speech.dto';
