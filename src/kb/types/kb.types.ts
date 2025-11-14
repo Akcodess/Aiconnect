@@ -39,6 +39,7 @@ export interface KbHandlerOps {
   VectorStoreFileDelete?: (platform: string, creds: KbHandlerCreds, input: KbVectorStoreFileInput) => Promise<KbVectorStoreFileResult | null>;
   ThreadCreate?: (platform: string, creds: KbHandlerCreds) => Promise<KbThreadCreateResult | null>;
   RunMessage?: (platform: string, creds: KbHandlerCreds, input: KbRunMessageInput) => Promise<KbRunMessageResult | null>;
+  GetRunStatus?: (platform: string, creds: KbHandlerCreds, input: KbRunStatusInput) => Promise<KbRunStatusResult | null>;
 }
 
 export interface KbStoreSummary {
@@ -163,4 +164,15 @@ export interface KbRunMessageInput {
 export interface KbRunMessageResult {
   ThreadId: string;
   RunId: string;
+}
+
+// Input for getting run status
+export interface KbRunStatusInput {
+  ThreadId: string;
+  RunId: string;
+}
+
+// Result for getting run status
+export interface KbRunStatusResult {
+  Status: string;
 }

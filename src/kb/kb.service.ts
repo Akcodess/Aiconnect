@@ -16,7 +16,8 @@ import { commonResponseCodes, commonResponseMessages } from '../common/constants
 import type { KbInitResult, KbStoreSummary, KbDeleteResult } from './types/kb.types';
 import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateResponseEnvelopeDto, KbAssistantListResponseEnvelopeDto, KbAssistantUpdateResponseEnvelopeDto, KbAssistantDeleteResponseEnvelopeDto, KbThreadCreateResponseEnvelopeDto, KbRunMessageResponseEnvelopeDto } from './dto/kb.dto';
 import type { KbInitDto, KbStoreListDto, KbDeleteDto, KbFileUploadDto, KbFileListDto, KbVectorStoreFileDto, KbAssistantCreateDto, KbAssistantListDto, KbAssistantUpdateDto, KbThreadCreateDto, KbRunMessageDto } from './dto/kb.dto';
-import type { KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary, KbAssistantUpdateResult, KbAssistantDeleteResult, KbThreadCreateResult, KbRunMessageResult } from './types/kb.types';
+import {KbRunStatusGetDto, KbRunStatusGetResponseEnvelopeDto } from './dto/kb.runstatus.dto';
+import type { KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary, KbAssistantUpdateResult, KbAssistantDeleteResult, KbThreadCreateResult, KbRunMessageResult, KbRunStatusResult } from './types/kb.types';
 
 @Injectable()
 export class KbService {
@@ -585,6 +586,25 @@ export class KbService {
       kbResponseMessages.runMessageSuccess,
       kbResponseCodes.runMessageSuccess,
       kbResponseMessages.runMessageFailed,
+      commonResponseCodes.InternalServerError,
+      dto,
+    );
+  }
+
+  async runStatusGet(req: CustomJwtRequest, dto: KbRunStatusGetDto) {
+    return this.execute<KbRunStatusResult | null>(
+      req,
+      async ({ xplatform, apikey }) => {
+        const { ThreadId, RunId } = dto;
+        const ops = this.kbHandler?.getOps(xplatform);
+        const result = await ops?.GetRunStatus?.(xplatform, { APIKey: apikey }, { ThreadId, RunId });
+
+        return result!;
+      },
+      KbRunStatusGetResponseEnvelopeDto,
+      kbResponseMessages.runStatusSuccess,
+      kbResponseCodes.runStatusSuccess,
+      kbResponseMessages.runStatusFailed,
       commonResponseCodes.InternalServerError,
       dto,
     );

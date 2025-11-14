@@ -10,7 +10,7 @@ import { commonResponseMessages } from '../constants/common.constants';
 import { v4 as uuidv4 } from 'uuid';
 import { kbResponseMessages } from '../../kb/constants/kb.constants';
 import type { KbFileUploadOpenAIParams, KbFileUploadResult } from '../../kb/types/kb.types';
-import type { KbVectorStoreFileInput, KbVectorStoreFileResult, KbAssistantCreateInput, KbAssistantCreateResult, KbAssistantUpdateResult, KbThreadCreateResult, KbRunMessageInput, KbRunMessageResult } from '../../kb/types/kb.types';
+import type { KbVectorStoreFileInput, KbVectorStoreFileResult, KbAssistantCreateInput, KbAssistantCreateResult, KbAssistantUpdateResult, KbThreadCreateResult, KbRunMessageInput, KbRunMessageResult, KbRunStatusInput, KbRunStatusResult } from '../../kb/types/kb.types';
 import { KbStatus } from '../../kb/types/kb.types';
 import { utilMessages } from '../constants/util.contant';
 
@@ -243,6 +243,18 @@ export class AiUtilService {
       return { ThreadId, RunId: run?.id! } as KbRunMessageResult;
     } catch (error: any) {
       this.logger.error(kbResponseMessages?.runMessageFailed, error?.message || error);
+      return null;
+    }
+  }
+
+  // Get run status from OpenAI
+  async kbGetRunStatusOpenAI({ APIKey, ThreadId, RunId }: { APIKey: string } & KbRunStatusInput): Promise<KbRunStatusResult | null> {
+    const openai = new OpenAI({ apiKey: APIKey });
+    try {
+      const runStatus = await openai?.beta?.threads?.runs?.retrieve?.(RunId!, { thread_id: ThreadId! });
+      return { Status: runStatus?.status! } as KbRunStatusResult;
+    } catch (error: any) {
+      this.logger.error(kbResponseMessages?.runStatusFailed, error?.message || error);
       return null;
     }
   }

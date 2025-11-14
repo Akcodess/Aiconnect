@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { AiUtilService } from '../common/utils/ai.util';
 import { LoggingService } from '../common/utils/logging.util';
-import type { KbInitResult, KbHandlerCreds, KbHandlerOps, KbFileUploadInput, KbFileUploadResult, KbVectorStoreFileInput, KbVectorStoreFileResult, KbAssistantCreateInput, KbAssistantCreateResult, KbAssistantUpdateInput, KbAssistantUpdateResult, KbThreadCreateResult, KbRunMessageInput, KbRunMessageResult } from './types/kb.types';
+import type { KbInitResult, KbHandlerCreds, KbHandlerOps, KbFileUploadInput, KbFileUploadResult, KbVectorStoreFileInput, KbVectorStoreFileResult, KbAssistantCreateInput, KbAssistantCreateResult, KbAssistantUpdateInput, KbAssistantUpdateResult, KbThreadCreateResult, KbRunMessageInput, KbRunMessageResult, KbRunStatusInput, KbRunStatusResult } from './types/kb.types';
 import { kbResponseMessages } from './constants/kb.constants';
 
 @Injectable()
@@ -22,6 +22,7 @@ export class KbAIHandlerService {
       AssistantUpdate: this.handleOpenAIAssistantUpdate.bind(this),
       ThreadCreate: this.handleOpenAIThreadCreate.bind(this),
       RunMessage: this.handleOpenAIRunMessage.bind(this),
+      GetRunStatus: this.handleOpenAIRunStatus.bind(this),
     }
   };
 
@@ -138,6 +139,16 @@ export class KbAIHandlerService {
       return result as KbRunMessageResult;
     } catch (err: unknown) {
       this.logger.error(kbResponseMessages?.runMessageFailed, err instanceof Error ? err.message : String(err));
+      return null;
+    }
+  }
+
+  private async handleOpenAIRunStatus(_: string, creds: KbHandlerCreds, input: KbRunStatusInput): Promise<KbRunStatusResult | null> {
+    try {
+      const result = await this.aiUtil?.kbGetRunStatusOpenAI({ APIKey: creds?.APIKey!, ...input });
+      return result as KbRunStatusResult;
+    } catch (err: unknown) {
+      this.logger.error(kbResponseMessages?.runStatusFailed, err instanceof Error ? err.message : String(err));
       return null;
     }
   }
