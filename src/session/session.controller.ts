@@ -1,12 +1,11 @@
 import { Controller, Post, Body, ValidationPipe, Headers } from '@nestjs/common';
-import { ApiTags, ApiOkResponse, ApiBody } from '@nestjs/swagger';
+import { ApiOkResponse, ApiBody } from '@nestjs/swagger';
 
 import { SessionService } from './session.service';
 import { SessionInitDto, SessionInitResponseDto, SessionEndResponseDto } from './dto/session.dto';
 import { apiVersion } from '../common/constants/version.constants';
 import { ApiSessionHeader } from '../common/decorators/api-session-header.decorator';
 
-@ApiTags('Session')
 @Controller({ path: '', version: apiVersion })
 export class SessionController {
   constructor(private readonly sessionService: SessionService) { }

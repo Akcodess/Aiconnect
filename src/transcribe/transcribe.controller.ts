@@ -1,5 +1,6 @@
 import { Controller, Get, Query, Req, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
-import { ApiTags, ApiOkResponse } from '@nestjs/swagger';
+import { ApiOkResponse } from '@nestjs/swagger';
+
 import { AuthGuard } from '../common/guards/session.guard';
 import type { CustomJwtRequest } from '../common/types/request.types';
 import { TranscribeDto } from './dto/transcribe.dto';

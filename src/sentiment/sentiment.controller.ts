@@ -1,5 +1,5 @@
 import { Controller, Get, Post, UseGuards, Req, Query, Body, ValidationPipe } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiOkResponse, ApiBadRequestResponse, ApiUnauthorizedResponse, ApiQuery, ApiBody } from '@nestjs/swagger';
+import { ApiOkResponse} from '@nestjs/swagger';
 import { ApiSessionHeader } from '../common/decorators/api-session-header.decorator';
 
 import { SentimentService } from './sentiment.service';
@@ -13,7 +13,6 @@ import { SentimentHistoryResponseEnvelopeDto } from './dto/sentiment-history-env
 import type { CustomJwtRequest } from '../common/types/request.types';
 import { apiVersion } from '../common/constants/version.constants';
 
-@ApiTags('Sentiment')
 @Controller({ path: '', version: apiVersion })
 export class SentimentController {
   constructor(private readonly sentimentService: SentimentService) { }
