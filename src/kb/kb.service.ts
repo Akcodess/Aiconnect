@@ -14,10 +14,19 @@ import { KbPlatformSID, KbStatus } from './types/kb.types';
 import { kbResponseMessages, kbResponseCodes } from './constants/kb.constants';
 import { commonResponseCodes, commonResponseMessages } from '../common/constants/response.constants';
 import type { KbInitResult, KbStoreSummary, KbDeleteResult } from './types/kb.types';
-import { KbInitResponseEnvelopeDto, KbStoreListResponseEnvelopeDto, KbDeleteResponseEnvelopeDto, KbFileUploadResponseEnvelopeDto, KbFileListResponseEnvelopeDto, KbFileDeleteResponseEnvelopeDto, KbVectorStoreFileResponseEnvelopeDto, KbAssistantCreateResponseEnvelopeDto, KbAssistantListResponseEnvelopeDto, KbAssistantUpdateResponseEnvelopeDto, KbAssistantDeleteResponseEnvelopeDto, KbThreadCreateResponseEnvelopeDto, KbRunMessageResponseEnvelopeDto } from './dto/kb.dto';
-import type { KbInitDto, KbStoreListDto, KbDeleteDto, KbFileUploadDto, KbFileListDto, KbVectorStoreFileDto, KbAssistantCreateDto, KbAssistantListDto, KbAssistantUpdateDto, KbThreadCreateDto, KbRunMessageDto } from './dto/kb.dto';
+import { KbAssistantListResponseEnvelopeDto, KbAssistantUpdateResponseEnvelopeDto, KbThreadCreateResponseEnvelopeDto, KbRunMessageResponseEnvelopeDto } from './dto/kb.dto';
+import type { KbAssistantListDto, KbAssistantUpdateDto, KbThreadCreateDto, KbRunMessageDto } from './dto/kb.dto';
 import { KbRunStatusGetDto, KbRunStatusGetResponseEnvelopeDto } from './dto/kb.runstatus.dto';
-import {KbMessagesGetDto, KbMessagesGetResponseEnvelopeDto} from './dto/kb.message.dto';
+import { KbInitDto, KbInitResponseEnvelopeDto } from './dto/kb-init.dto';
+import { KbStoreListDto, KbStoreListResponseEnvelopeDto } from './dto/kb-list.dto';
+import { KbDeleteDto, KbDeleteResponseEnvelopeDto } from './dto/kb-delete.dto';
+import { KbFileUploadDto, KbFileUploadResponseEnvelopeDto } from './dto/kb-file-upload.dto';
+import { KbFileListDto, KbFileListResponseEnvelopeDto } from './dto/kb-file-list.dto';
+import { KbVectorStoreFileDto, KbVectorStoreFileResponseEnvelopeDto } from './dto/kb-vectorstore-file-map.dto';
+import { KbFileDeleteResponseEnvelopeDto } from './dto/kb-file-delete.dto';
+import { KbAssistantDeleteResponseEnvelopeDto } from './dto/kb-assistant-delete.sto';
+import { KbAssistantCreateDto, KbAssistantCreateResponseEnvelopeDto } from './dto/kb-assistant-create.dto';
+import { KbMessagesGetDto, KbMessagesGetResponseEnvelopeDto } from './dto/kb.message.dto';
 import type { KbFileUploadResult, KbFileSummary, KbFileDeleteResult, KbVectorStoreFileResult, KbAssistantCreateResult, KbAssistantSummary, KbAssistantUpdateResult, KbAssistantDeleteResult, KbThreadCreateResult, KbRunMessageResult, KbRunStatusResult, KbGetMessagesResult } from './types/kb.types';
 
 @Injectable()
